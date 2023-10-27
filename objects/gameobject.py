@@ -70,6 +70,14 @@ class GameObject(pg.sprite.Sprite):
     def trigger_shield(self) -> None:
         pass
 
+    def _rotate(self, image, rect, angle):
+        """rotate an image while keeping its center"""
+        rot_image = pg.transform.rotate(image, angle)
+        rot_rect = rot_image.get_rect(center=rect.center)
+        return rot_image,rot_rect
+    
+
+        
     def update(self) -> None:
         print(f'Speed: {self.speed}, rotation: {self.state.heading}')
 
