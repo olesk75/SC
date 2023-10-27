@@ -1,17 +1,31 @@
-from .gameobject import Ship
+from .gameobject import Ship, Projectile
 
 import pygame as pg
 from icecream import ic
 
 import math
 
+
 class EnemyPlayer(Ship):
-    def __init__(self, x_pos, y_pos, health, shield, direction, velocity, heading, max_velocity) -> None:
+    def __init__(
+        self, x_pos, y_pos, health, shield, direction, velocity, heading, max_velocity
+    ) -> None:
         super().__init__(x_pos, y_pos, health, shield, direction, velocity, heading, max_velocity)
 
 
 class EnemyAI(Ship):
-    def __init__(self, x_pos, y_pos, health, shield, direction, velocity, heading, max_velocity,skill) -> None:
+    def __init__(
+        self,
+        x_pos,
+        y_pos,
+        health,
+        shield,
+        direction,
+        velocity,
+        heading,
+        max_velocity,
+        skill,
+    ) -> None:
         super().__init__(x_pos, y_pos, health, shield, direction, velocity, heading, max_velocity)
         self.skill = skill
 
@@ -23,11 +37,15 @@ class EnemyAI(Ship):
 
 
 class Player(Ship):
-    def __init__(self, x_pos, y_pos, health, shield, direction, velocity, heading, max_velocity) -> None:
+    def __init__(
+        self, x_pos, y_pos, health, shield, direction, velocity, heading, max_velocity
+    ) -> None:
         super().__init__(x_pos, y_pos, health, shield, direction, velocity, heading, max_velocity)
-        
-        self.max_velocity = 10  # TODO: read from ship config 
-        self.min_velocity = -5  # TODO: read from ship config 
+
+        self.projectiles = pg.sprite.Group()
+
+        self.max_velocity = 10  # TODO: read from ship config
+        self.min_velocity = -5  # TODO: read from ship config
 
         self.accelleration = 0
         self.slowing = 10
@@ -38,7 +56,7 @@ class Player(Ship):
         self.width = 80  # TODO: into game object
         self.height = 80
 
-        self.image = pg.image.load('assets/ships/earthling.png').convert_alpha()
+        self.image = pg.image.load("assets/ships/martians.png").convert_alpha()
         self.orig_image = self.image
         self.rect = self.image.get_rect()
         self.orig_rect = self.rect
@@ -48,32 +66,70 @@ class Player(Ship):
         if event.type == pg.KEYDOWN:
             match event.key:
                 # Accelleration and decelleration
-                case pg.K_UP: self.accelleration += 1
-                case pg.K_DOWN: self.accelleration -= 1
+                case pg.K_UP:
+                    self.accelleration += 1
+                case pg.K_DOWN:
+                    self.accelleration -= 1
                 # Turning
-                case pg.K_LEFT: self.turning = 1
-                case pg.K_RIGHT: self.turning = -1
+                case pg.K_LEFT:
+                    self.turning = 1
+                case pg.K_RIGHT:
+                    self.turning = -1
                 # Firing
-                case pg.K_SPACE: self.firing(firing=True, main_gun=True)
-                case pg.K_SPACE: self.firing(firing=True, main_gun=False)
+                case pg.K_SPACE:
+                    self.fire(firing=True, primary=True)
+                case pg.K_SPACE:
+                    self.state(firing=True, primary=False)
                 # Quitting
-                case pg.K_ESCAPE: pg.event.post(pg.event.Event(pg.QUIT))
+                case pg.K_ESCAPE:
+                    pg.event.post(pg.event.Event(pg.QUIT))
 
         # Checking if a previously pressed key is being released
         if event.type == pg.KEYUP:
             match event.key:
                 # We have stopped accellerating or decellerating
-                case pg.K_UP: self.accelleration = 0
-                case pg.K_DOWN: self.accelleration = 0
-                case pg.K_LEFT: self.turning = 0
-                case pg.K_RIGHT: self.turning = 0
+                case pg.K_UP:
+                    self.accelleration = 0
+                case pg.K_DOWN:
+                    self.accelleration = 0
+                case pg.K_LEFT:
+                    self.turning = 0
+                case pg.K_RIGHT:
+                    self.turning = 0
 
-    
+    def fire(self, firing: bool, primary: bool) -> None:
+        if primary:
+            # firing primary weapon
+            # TODO: placeholder data
+            self.firing = firing
+            p_velocity = 20
+            p_direction = self.state.heading
+            p_health = 1000
+            p_time = 10
+            p_shield = 1000
+            p_explode = False
+            p = Projectile(
+                self.state.x_pos,
+                self.state.y_pos,
+                p_health,
+                p_shield,
+                p_direction,
+                p_velocity,
+                p_direction,
+                max_velocity=1000,
+                expiry_time=p_time,
+            )
+            self.projectiles.add(p)
+
+        else:
+            # firing secondary weapon
+            pass
 
     def update(self) -> None:
         # From accelleration to speed to coordinates
-        if (self.state.velocity < self.max_velocity and self.state.velocity > 0) or \
-            (self.state.velocity > self.min_velocity and self.state.velocity <= 0):
+        if (self.state.velocity < self.max_velocity and self.state.velocity > 0) or (
+            self.state.velocity > self.min_velocity and self.state.velocity <= 0
+        ):
             self.state.velocity += self.accelleration
 
         # We make the speed drop off slowly - we have 60 FPS, so this gets run 60
@@ -85,19 +141,16 @@ class Player(Ship):
                     self.state.velocity += 1
                 else:
                     self.state.velocity -= 1
-    
-            
-        # Determining the heading 
+
+        # Determining the heading
         self.state.heading += self.turning * self.turn_speed
-        
+
         # Rotation
         self.image, self.rect = self._rotate(self.orig_image, self.orig_rect, self.state.heading)
 
         # Movement
         self.state.x_pos -= math.sin(math.radians(self.state.heading)) * self.state.velocity
         self.state.y_pos -= math.cos(math.radians(self.state.heading)) * self.state.velocity
-        
+
         # Position
         self.rect.center = (self.state.x_pos, self.state.y_pos)
-
-
