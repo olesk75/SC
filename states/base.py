@@ -11,18 +11,6 @@ class BaseState:
         self.font = pg.font.Font(None, 24)
 
 
-        # Redundant?
-        """ 
-        self.user_input = {
-            'quit': False,
-            'right': False,
-            'left': False,
-            'up': False,
-            'down': False,
-            'attack': False
-        }
-        """
-
     def get_joysticks(self) -> None:
         self.level_current = 1
 
@@ -45,8 +33,8 @@ class BaseState:
         """ Placeholder to be overwritten in each state class """
         pass
 
-    def startup(self, persistent) -> None:
-        self.persist = persistent
+    def startup(self) -> None:
+        pass
 
     def update(self) -> None:
         """ Placeholder to be overwritten in each state class """

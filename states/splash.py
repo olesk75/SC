@@ -15,11 +15,11 @@ class Splash(BaseState):
         self.title_rect = self.title.get_rect(center=self.screen_rect.center)
 
 
-    def update(self):
+    def update(self) -> None:
         if time.time() > self.start_time + 2:
             self.done = True
 
     
-    def draw(self, surface):
+    def draw(self, surface) -> None:
         surface.fill(pg.Color("black"))
         surface.blit(self.title, self.title_rect)

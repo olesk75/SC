@@ -33,9 +33,8 @@ class Game:
         ic('State transition:', current_state, next_state)
         self.state.done = False
         self.state_name = next_state
-        persistent = self.state.persist
         self.state = self.states[self.state_name]
-        self.state.startup(persistent)
+        self.state.startup()
 
     def update(self) -> None:
         if self.state.quit:
@@ -59,7 +58,10 @@ class Game:
         self.clock.tick(self.FPS)
 
         self._screen.blit(self.game_surface, (0, 0))
-
+        
+    """ 
+    This is the main game loop
+    """
     def run(self) -> None:
         while not self.done:
             self.clock.tick(self.FPS)

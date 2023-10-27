@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from icecream import ic
+import pygame as pg
 
 
 @dataclass(kw_only=True)
@@ -29,15 +30,19 @@ class GameObjectState:
     exploding: bool = False # if object is currently exploding
 
 
-class GameObject:
+class GameObject(pg.sprite.Sprite):
     """ Metaclass for all game objects, like enemies, player, bullets, powerups etc.
 
-    Methods:
-
+        The class inherits from the Sprite class. Object is added to a sprite group, which then is used for calling the draw(method)
     """
+
     def __init__(self, x_pos, y_pos, health, shield, direction, velocity, heading, max_velocity) -> None:
         self.state = GameObjectState(x_pos=x_pos, y_pos=y_pos, health=health, shield=shield,
                                      direction=direction, velocity=velocity, heading=heading, max_velocity=max_velocity)
+        super().__init__()
+
+        self.rect = pg.Rect
+        self.image = pg.Surface
 
     def accelerate(self, direction) -> None:
         # TODO: add acceleration factor depending on ship type
@@ -62,6 +67,8 @@ class GameObject:
             # firing secondary weapon
             pass
         
+    def trigger_shield(self) -> None:
+        pass
 
     def update(self) -> None:
         print(f'Speed: {self.speed}, rotation: {self.state.heading}')
@@ -73,14 +80,8 @@ class GameObject:
 class Ship(GameObject):
     def __init__(self, x_pos: int, y_pos: int, health: int, shield: int, direction: int, velocity: int, heading: int, max_velocity:int) -> None:
         super().__init__(x_pos, y_pos, health, shield, direction, velocity, heading, max_velocity)
-        
 
-    def fire(self) -> None:
-        """ Overwriting parent function for ship"""
-        pass
 
-    def trigger_shield(self) -> None:
-        pass
 
 
 class Obstacle(GameObject):
