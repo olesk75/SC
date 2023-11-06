@@ -22,10 +22,15 @@ class GameObjectState:
     shield: int
     energy: int
     recharge: int
+    fire_rate: int
     direction: int
     velocity: int
     heading: int
     max_velocity: int
+
+    # Derived values
+    max_health: int
+    max_energy: int
 
     # Field witrh default values
     alive: bool = True  # always initialized alive
@@ -48,6 +53,7 @@ class GameObject(pg.sprite.Sprite):
         shield,
         energy,
         recharge,
+        fire_rate,
         direction,
         velocity,
         heading,
@@ -60,10 +66,13 @@ class GameObject(pg.sprite.Sprite):
             shield=shield,
             energy=energy,
             recharge=recharge,
+            fire_rate=fire_rate,
             direction=direction,
             velocity=velocity,
             heading=heading,
             max_velocity=max_velocity,
+            max_health=health,
+            max_energy=energy,
         )
         super().__init__()
 
@@ -115,7 +124,7 @@ class GameObject(pg.sprite.Sprite):
 class Obstacle(GameObject):
     def __init__(self, x_pos: int, y_pos: int, health: int, shield, destructible: bool) -> None:
         super().__init__(
-            x_pos, y_pos, health, shield, 0, 0, 0, 0, 0, 0
+            x_pos, y_pos, health, shield, 0, 0, 0, 0, 0, 0, 0
         )  # obstacles have no direction, velocity nor heading
         self.destructible = destructible
 
@@ -129,6 +138,7 @@ class Projectile(GameObject):
         shield: int,
         energy: int,
         recharge: int,
+        fire_rate: int,
         direction: int,
         velocity: int,
         heading: int,
@@ -142,6 +152,7 @@ class Projectile(GameObject):
             shield,
             energy,
             recharge,
+            fire_rate,
             direction,
             velocity,
             heading,

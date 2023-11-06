@@ -16,6 +16,9 @@ class Ship(GameObject):
         self.max_velocity = 10  # TODO: read from ship config
         self.min_velocity = -5  # TODO: read from ship config
 
+        self.last_fire = 0
+        self.last_energy_tick = 0
+
         self.accelleration = 0
         self.slowing = 10
 
@@ -30,7 +33,8 @@ class Ship(GameObject):
                 self.health = 1000
                 self.shield = 1000
                 self.energy = 1000
-                self.recharge = 10
+                self.recharge = 5
+                self.fire_rate = 100  # lower is faster
                 self.max_velocity = 10
                 self.turn_speed = 5
                 self.image = pg.image.load("assets/ships/martian.png").convert_alpha()
@@ -42,7 +46,8 @@ class Ship(GameObject):
                 self.health = 2000
                 self.shield = 500
                 self.energy = 250
-                self.recharge = 50
+                self.recharge = 10
+                self.fire_rate = 500
                 self.max_velocity = 18
                 self.turn_speed = 5
                 self.image = pg.image.load("assets/ships/plutonian.png").convert_alpha()
@@ -65,6 +70,7 @@ class Ship(GameObject):
             self.shield,
             self.energy,
             self.recharge,
+            self.fire_rate,
             direction,
             velocity,
             heading,
@@ -72,36 +78,42 @@ class Ship(GameObject):
         )
 
     def fire(self, firing: bool, primary: bool) -> None:
-        if primary:
-            # firing primary weapon
-            # TODO: placeholder data
-            self.firing = firing
-            p_velocity = 20
-            p_direction = self.state.heading
-            p_health = 1000
-            p_time = 10
-            p_shield = 1000
-            p_energy = 0
-            p_recharge = 0
-            p_explode = False
-            p = Projectile(
-                self.state.x_pos,
-                self.state.y_pos,
-                p_health,
-                p_shield,
-                p_energy,
-                p_recharge,
-                p_direction,
-                p_velocity,
-                p_direction,
-                max_velocity=1000,
-                expiry_time=p_time,
-            )
-            self.projectiles.add(p)
+        now = pg.time.get_ticks()
+        if now - self.last_fire > self.state.fire_rate and self.state.energy > 10:  # hardcoded
+            self.last_fire = now
+            if primary:
+                self.state.energy -= 10  # hardcoded
+                # firing primary weapon
+                # TODO: placeholder data
+                self.firing = firing
+                p_velocity = 20
+                p_direction = self.state.heading
+                p_health = 1000
+                p_time = 10
+                p_shield = 1000
+                p_energy = 0
+                p_recharge = 0
+                p_fire_rate = 0
+                p_explode = False
+                p = Projectile(
+                    self.state.x_pos,
+                    self.state.y_pos,
+                    p_health,
+                    p_shield,
+                    p_energy,
+                    p_recharge,
+                    p_fire_rate,
+                    p_direction,
+                    p_velocity,
+                    p_direction,
+                    max_velocity=1000,
+                    expiry_time=p_time,
+                )
+                self.projectiles.add(p)
 
-        else:
-            # firing secondary weapon
-            pass
+            else:
+                # firing secondary weapon
+                pass
 
     def update(self) -> None:
         # From accelleration to speed to coordinates
@@ -133,3 +145,13 @@ class Ship(GameObject):
 
         # Position
         self.rect.center = (self.state.x_pos, self.state.y_pos)
+
+        # Energy recharge
+        now = pg.time.get_ticks()
+        if (
+            now - self.last_energy_tick > 1000 and self.state.energy < self.state.max_energy
+        ):  # hardcoded ignoring max values
+            self.last_energy_tick = now
+            self.state.energy += self.recharge
+            if self.state.energy > self.state.max_energy:
+                self.state.energy = self.state.max_energy

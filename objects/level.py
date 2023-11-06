@@ -90,11 +90,11 @@ class Level:
         self.background.draw(
             surface,
             "Player 1",
-            self.player.health,
-            self.player.energy,
+            self.player.state.health,
+            self.player.state.energy,
             "Enemy AI",
-            self.enemy.health,
-            self.enemy.energy,
+            self.enemy.state.health,
+            self.enemy.state.energy,
         )
 
         self.player_sprites.draw(surface)
