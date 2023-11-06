@@ -11,9 +11,9 @@ class Game:
     The run() method is looping until the game exits
     """
 
-    def __init__(self, _screen, states, start_state, FPS) -> None:
+    def __init__(self, screen, states, start_state, FPS) -> None:
         self.done = False
-        self._screen = _screen
+        self.screen = screen
         self.clock = pg.time.Clock()
         self.FPS = FPS
         self.states = states
@@ -48,18 +48,16 @@ class Game:
         )  # call the update function in active state (on game_surface, not the screen)
 
         if settings.SHOW_FPS:
-            fps_text = self.font.render(
-                f"FPS: {self.clock.get_fps():.2f}", True, (255, 255, 0)
-            )
+            fps_text = self.font.render(f"FPS: {self.clock.get_fps():.2f}", True, (255, 255, 0))
             self.game_surface.blit(fps_text, (10, 100))
 
         # screen.blit(pg.transform.scale(game_surface, (width, height)), (0, 0))
-        self._screen.blit(self.game_surface, (0, 0))
+        self.screen.blit(self.game_surface, (0, 0))
 
         pg.display.update()
         self.clock.tick(self.FPS)
 
-        self._screen.blit(self.game_surface, (0, 0))
+        self.screen.blit(self.game_surface, (0, 0))
 
     """ 
     This is the main game loop

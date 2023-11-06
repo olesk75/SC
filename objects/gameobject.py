@@ -4,7 +4,7 @@ import pygame as pg
 import math
 
 
-@dataclass(kw_only=True)
+@dataclass()
 class GameObjectState:
     """Metaclass for all game objects, like enemies, player, bullets, powerups etc.
 
@@ -20,6 +20,8 @@ class GameObjectState:
     y_pos: int
     health: int
     shield: int
+    energy: int
+    recharge: int
     direction: int
     velocity: int
     heading: int
@@ -39,13 +41,25 @@ class GameObject(pg.sprite.Sprite):
     """
 
     def __init__(
-        self, x_pos, y_pos, health, shield, direction, velocity, heading, max_velocity
+        self,
+        x_pos,
+        y_pos,
+        health,
+        shield,
+        energy,
+        recharge,
+        direction,
+        velocity,
+        heading,
+        max_velocity,
     ) -> None:
         self.state = GameObjectState(
             x_pos=x_pos,
             y_pos=y_pos,
             health=health,
             shield=shield,
+            energy=energy,
+            recharge=recharge,
             direction=direction,
             velocity=velocity,
             heading=heading,
@@ -67,8 +81,7 @@ class GameObject(pg.sprite.Sprite):
         if self.speed < ship_min_speed:
             self.speed = ship_min_speed
 
-    def spin(self, direction) -> None:
-        ship_rotate_speed = 1
+    def spin(self, direction, ship_rotate_speed) -> None:
         self.state.heading += ship_rotate_speed * direction
         if self.state.heading >= 360:
             self.state.heading -= 360
@@ -86,7 +99,7 @@ class GameObject(pg.sprite.Sprite):
     def trigger_shield(self) -> None:
         pass
 
-    def _rotate(self, image, rect, angle):
+    def _rotatesprite(self, image, rect, angle) -> tuple[pg.Surface, pg.Rect]:
         """rotate an image while keeping its center"""
         rot_image = pg.transform.rotate(image, angle)
         rot_rect = rot_image.get_rect(center=rect.center)
@@ -99,25 +112,10 @@ class GameObject(pg.sprite.Sprite):
         pass
 
 
-class Ship(GameObject):
-    def __init__(
-        self,
-        x_pos: int,
-        y_pos: int,
-        health: int,
-        shield: int,
-        direction: int,
-        velocity: int,
-        heading: int,
-        max_velocity: int,
-    ) -> None:
-        super().__init__(x_pos, y_pos, health, shield, direction, velocity, heading, max_velocity)
-
-
 class Obstacle(GameObject):
     def __init__(self, x_pos: int, y_pos: int, health: int, shield, destructible: bool) -> None:
         super().__init__(
-            x_pos, y_pos, health, shield, 0, 0, 0, 0
+            x_pos, y_pos, health, shield, 0, 0, 0, 0, 0, 0
         )  # obstacles have no direction, velocity nor heading
         self.destructible = destructible
 
@@ -129,13 +127,27 @@ class Projectile(GameObject):
         y_pos: int,
         health: int,
         shield: int,
+        energy: int,
+        recharge: int,
         direction: int,
         velocity: int,
         heading: int,
         max_velocity: int,
         expiry_time: int,
     ) -> None:
-        super().__init__(x_pos, y_pos, health, shield, direction, velocity, heading, max_velocity)
+        super().__init__(
+            x_pos,
+            y_pos,
+            health,
+            shield,
+            energy,
+            recharge,
+            direction,
+            velocity,
+            heading,
+            max_velocity,
+        )
+
         self.expiry_time: int
         self.explode: bool
         self.explosion_size: int
@@ -147,7 +159,7 @@ class Projectile(GameObject):
         self.rect = self.image.get_rect()
 
         # We set rotation
-        self.image, self.rect = self._rotate(self.image, self.rect, heading)
+        self.image, self.rect = self._rotatesprite(self.image, self.rect, heading)
 
         # Every projectile is different
         if self.type == "placeholder":
@@ -155,7 +167,7 @@ class Projectile(GameObject):
             self.explode = True
             self.explosion_size = 50
 
-    def update(self):
+    def update(self) -> None:
         self.ticks += 1
 
         # If we're too old we die or explode
@@ -168,8 +180,8 @@ class Projectile(GameObject):
                 self.kill()
 
         # Movement
-        self.state.x_pos -= math.sin(math.radians(self.state.heading)) * self.state.velocity
-        self.state.y_pos -= math.cos(math.radians(self.state.heading)) * self.state.velocity
+        self.state.x_pos -= int(math.sin(math.radians(self.state.heading)) * self.state.velocity)
+        self.state.y_pos -= int(math.cos(math.radians(self.state.heading)) * self.state.velocity)
 
         # Position
         self.rect.center = (self.state.x_pos, self.state.y_pos)

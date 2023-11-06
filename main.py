@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import pygame
 import pygame as pg
 
 from icecream import ic
@@ -16,7 +15,7 @@ import settings
 
 
 FPS = 60
-FLAGS = pg.SCALED #flags = pg.FULLSCREEN | pg.HWSURFACE | pg.SCALED
+FLAGS = pg.SCALED  # flags = pg.FULLSCREEN | pg.HWSURFACE | pg.SCALED
 
 
 # pg setup
@@ -30,7 +29,7 @@ current_screen = pg.display.Info()
 monitor_res = (current_screen.current_w, current_screen.current_h)
 width, height = settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT
 
-ic('Screen resolution', width, height, monitor_res)
+ic("Screen resolution", width, height, monitor_res)
 
 screen = pg.display.set_mode((width, height), FLAGS)
 
@@ -44,6 +43,6 @@ states = {
 game = Game(screen, states, "SPLASH", FPS)
 game.run()
 
-pygame.quit()
-ic('Normal exit')
+pg.quit()
+ic("Normal exit")
 sys.exit()
