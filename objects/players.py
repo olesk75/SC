@@ -1,4 +1,3 @@
-from .gameobject import Projectile
 from .ship import Ship
 
 import pygame as pg
@@ -23,37 +22,66 @@ class EnemyAI(Ship):
         super().__init__(x_pos, y_pos, direction, velocity, heading, ship_type)
         self.projectiles = pg.sprite.Group()
         self.skill = skill
+        self.strategies = {"start"}
 
     def think(self, player, player_projectiles) -> None:
-        # Basic enemy AI, simulating inputs
+        """
+        Basic enemy AI, simulating inputs
 
-        # Turn AI towards player
-        # Assuming you have two sprite objects with their positions
+        General rules:
+         - always turn towards the player
+         - accellerate to max speed
+         - if we are unable to get pointed at player (we are being outmanouvered),
+           slow down until we're able to get the player in our crosshair
+              - if we have teleport, use that as well
+         - if we have shields, use them if the player gets a projectile close to us
 
-        # Calculate the vector to Player
-        dx = player.rect.centerx - self.rect.centerx
-        dy = player.rect.centery - self.rect.centery
+        """
 
-        # Calculate the angle in radians
-        angle = math.atan2(-dx, -dy)
-        angle %= 2 * math.pi
-        angle = math.degrees(angle)
+        # We immediately go to hunt mode after start PLACEHOLDER
+        if "start" in self.strategies:
+            self.strategies = {"hunt"}
 
-        # Perfect following: self.state.heading = angle
-        angle_delta = angle - self.state.heading
-        if angle_delta < 0:
-            angle_delta += 360
+        # If we're either hunting or escaping, we accellerate to max
+        # if set(['hunt', 'escape']).issubset(self.strategies):
+        if "hunt" in self.strategies or "escape" in self.strategies:
+            # Accelerate to max speed
+            if self.state.velocity < self.state.max_velocity:
+                self.accelleration += 1
+            else:
+                self.accelleration = 0
 
-        self.turning = 0
+        if "hunt" in self.strategies:
+            # Turn AI towards player
 
-        if angle_delta > self.turn_speed:
-            if angle_delta >= 180:
-                self.turning = -1
-            elif angle_delta > 0:
-                self.turning = 1
+            # Calculate the vector to Player
+            dx = player.rect.centerx - self.rect.centerx
+            dy = player.rect.centery - self.rect.centery
 
-        else:
-            self.fire(firing=True, primary=True)
+            # Calculate the angle in radians
+            angle = math.atan2(-dx, -dy)
+            angle %= 2 * math.pi
+            angle = math.degrees(angle)
+
+            # Perfect following: self.state.heading = angle
+            angle_delta = angle - self.state.heading
+            if angle_delta < 0:
+                angle_delta += 360
+
+            self.turning = 0
+
+            if angle_delta > self.turn_speed:
+                if angle_delta >= 180:
+                    self.turning = -1
+                elif angle_delta > 0:
+                    self.turning = 1
+
+            else:
+                # We got the player in our sights and we attack with main weapon
+                self.strategies.add("fire")
+
+        if "fire" in self.strategies:
+            self.fire()
 
 
 class Player(Ship):
@@ -79,9 +107,9 @@ class Player(Ship):
                     self.turning = -1
                 # Firing
                 case pg.K_SPACE:
-                    self.fire(firing=True, primary=True)
-                case pg.K_SPACE:
-                    self.fire(firing=True, primary=False)
+                    self.fire()
+                case pg.K_RSHIFT:
+                    self.fire_special()
                 # Quitting
                 case pg.K_ESCAPE:
                     pg.event.post(pg.event.Event(pg.QUIT))

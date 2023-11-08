@@ -11,7 +11,7 @@ class Level:
     def __init__(self) -> None:
         self.number: int
         self.state = "run"  # alternatives "win" and "loss"
-        self.enemyAI_difficulty = 1.0  # float between 0 and 1
+        self.enemyAI_difficulty = 0.5  # float between 0 and 1
         self.zoom = 1  # we zoom out when opponents get far appart
 
         self.projectiles_live = 0

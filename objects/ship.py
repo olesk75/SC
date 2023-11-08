@@ -1,8 +1,10 @@
 from .gameobject import GameObject, Projectile
+from settings import SCREEN_HEIGHT, SCREEN_WIDTH
 
 import pygame as pg
 from icecream import ic
 import math
+import random
 
 
 class Ship(GameObject):
@@ -41,6 +43,7 @@ class Ship(GameObject):
                 self.image_engines = pg.image.load(
                     "assets/ships/martian-engines-full.png"
                 ).convert_alpha()
+                self.special = "teleport"
             case "plutonian":
                 ic(self.ship_type)
                 self.health = 2000
@@ -48,12 +51,13 @@ class Ship(GameObject):
                 self.energy = 250
                 self.recharge = 10
                 self.fire_rate = 500
-                self.max_velocity = 18
+                self.max_velocity = 15
                 self.turn_speed = 5
                 self.image = pg.image.load("assets/ships/plutonian.png").convert_alpha()
                 self.image_engines = pg.image.load(
                     "assets/ships/plutonian-engines-full.png"
                 ).convert_alpha()
+                self.special = "shield"
             case _:
                 raise ValueError(f"{ship_type} is not an allowed ship type")
 
@@ -77,43 +81,44 @@ class Ship(GameObject):
             self.max_velocity,
         )
 
-    def fire(self, firing: bool, primary: bool) -> None:
+    def fire(self) -> None:
         now = pg.time.get_ticks()
         if now - self.last_fire > self.state.fire_rate and self.state.energy > 10:  # hardcoded
             self.last_fire = now
-            if primary:
-                self.state.energy -= 10  # hardcoded
-                # firing primary weapon
-                # TODO: placeholder data
-                self.firing = firing
-                p_velocity = 20
-                p_direction = self.state.heading
-                p_health = 1000
-                p_time = 10
-                p_shield = 1000
-                p_energy = 0
-                p_recharge = 0
-                p_fire_rate = 0
-                p_explode = False
-                p = Projectile(
-                    self.state.x_pos,
-                    self.state.y_pos,
-                    p_health,
-                    p_shield,
-                    p_energy,
-                    p_recharge,
-                    p_fire_rate,
-                    p_direction,
-                    p_velocity,
-                    p_direction,
-                    max_velocity=1000,
-                    expiry_time=p_time,
-                )
-                self.projectiles.add(p)
+            self.state.energy -= 10  # hardcoded
+            # firing primary weapon
+            # TODO: placeholder data
+            self.firing = True
+            p_velocity = 20
+            p_direction = self.state.heading
+            p_health = 1000
+            p_time = 10
+            p_shield = 1000
+            p_energy = 0
+            p_recharge = 0
+            p_fire_rate = 0
+            p_explode = False
+            p = Projectile(
+                self.state.x_pos,
+                self.state.y_pos,
+                p_health,
+                p_shield,
+                p_energy,
+                p_recharge,
+                p_fire_rate,
+                p_direction,
+                p_velocity,
+                p_direction,
+                max_velocity=1000,
+                expiry_time=p_time,
+            )
+            self.projectiles.add(p)
 
-            else:
-                # firing secondary weapon
-                pass
+    def fire_special(self) -> None:
+        match self.ship_type:
+            case "martian":
+                self.state.x_pos = random.randint(100, SCREEN_WIDTH - 100)
+                self.state.y_pos = random.randint(100, SCREEN_HEIGHT - 100)
 
     def update(self) -> None:
         # From accelleration to speed to coordinates
