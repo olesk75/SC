@@ -8,6 +8,7 @@ class Menu(BaseState):
         super().__init__()
         self.active_index = 0
         self.options = ["Start Game Player vs AI", "Start Game Player vs Player", "Quit Game"]
+        self.name = "MENU"
         self.next_state = "GAMEPLAY"
 
     def render_text(self, index):
@@ -40,5 +41,3 @@ class Menu(BaseState):
         for index, option in enumerate(self.options):
             text_render = self.render_text(index)
             surface.blit(text_render, self.get_text_position(text_render, index))
-
-

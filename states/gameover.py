@@ -10,6 +10,7 @@ class GameOver(BaseState):
         super().__init__()
         self.active_index = 0
         self.options = ["Start Game Player vs AI", "Start Game Player vs Player", "Quit Game"]
+        self.name = "GAMEOVER"
         self.next_state = "GAMEPLAY"
 
     def render_text(self, index) -> pg.Surface:

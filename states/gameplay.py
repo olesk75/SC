@@ -12,16 +12,15 @@ import pygame as pg
 class GamePlay(BaseState):
     def __init__(self) -> None:
         super().__init__()
-        self.startup()
-        ic("GAME START")
 
-    def startup(self) -> None:
+    def startup(self, fight_status) -> None:
+        self.fight_status = fight_status
         self.current_level = 1
         self.level = Level()
         self.level.startup(self.current_level)
-        self.done = False
-        self.quit = False
-        self.next_state = "GAME_OVER"
+        self.name = "GAMEPLAY"
+        self.next_state = "READY"
+        self.win: bool  # gets set when we have a winner
 
     # Get events from level instance, which in turn gets events from player instance(s)
     def get_event(self, event) -> None:
@@ -35,10 +34,14 @@ class GamePlay(BaseState):
         self.level.update()
 
         if self.level.state == "win":
+            self.win = True
             self.done = True
+            self.fight_status.p1_wins += 1
             print("WIN")
         if self.level.state == "loss":
+            self.win = False
             self.done = True
+            self.fight_status.ai_wins += 1
             print("LOSS")
 
     def draw(self, surface) -> None:

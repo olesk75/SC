@@ -28,10 +28,10 @@ class Ship(GameObject):
 
         self.width = 80  # TODO: into game object
         self.height = 80
+        self.ships = ["martian", "plutonian"]
 
         match self.ship_type:
             case "martian":
-                ic(self.ship_type)
                 self.health = 1000
                 self.shield = 1000
                 self.energy = 1000
@@ -44,8 +44,9 @@ class Ship(GameObject):
                     "assets/ships/martian-engines-full.png"
                 ).convert_alpha()
                 self.special = "teleport"
+                self.fire_sound = pg.mixer.Sound("assets/sounds/shot_5.wav")
+                self.special_sound = pg.mixer.Sound("assets/sounds/change_1.wav")
             case "plutonian":
-                ic(self.ship_type)
                 self.health = 2000
                 self.shield = 500
                 self.energy = 250
@@ -58,6 +59,8 @@ class Ship(GameObject):
                     "assets/ships/plutonian-engines-full.png"
                 ).convert_alpha()
                 self.special = "shield"
+                self.fire_sound = pg.mixer.Sound("assets/sounds/fire_2.wav")
+                self.special_sound = pg.mixer.Sound("assets/sounds/shot_5.wav")
             case _:
                 raise ValueError(f"{ship_type} is not an allowed ship type")
 
@@ -85,6 +88,7 @@ class Ship(GameObject):
         now = pg.time.get_ticks()
         if now - self.last_fire > self.state.fire_rate and self.state.energy > 10:  # hardcoded
             self.last_fire = now
+            self.fire_sound.play()
             self.state.energy -= 10  # hardcoded
             # firing primary weapon
             # TODO: placeholder data
@@ -119,6 +123,7 @@ class Ship(GameObject):
             case "martian":
                 self.state.x_pos = random.randint(100, SCREEN_WIDTH - 100)
                 self.state.y_pos = random.randint(100, SCREEN_HEIGHT - 100)
+                self.special_sound.play()
 
     def update(self) -> None:
         # From accelleration to speed to coordinates

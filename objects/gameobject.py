@@ -118,7 +118,10 @@ class GameObject(pg.sprite.Sprite):
         print(f"Speed: {self.speed}, rotation: {self.state.heading}")
 
     def draw(self) -> None:
-        pass
+        raise RuntimeError(
+            "Never use draw method directly. Include in sprite group and call draw() on that instead"
+        )
+        exit(1)
 
 
 class Obstacle(GameObject):

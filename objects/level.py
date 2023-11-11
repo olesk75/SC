@@ -49,6 +49,10 @@ class Level:
         self.enemy_ai_sprites = pg.sprite.GroupSingle()
         self.enemy_ai_sprites.add(self.enemy)
 
+        # Win and loss sounds
+        self.sound_win = pg.mixer.Sound("assets/sounds/win_1.wav")
+        self.sound_loss = pg.mixer.Sound("assets/sounds/lose_1.wav")
+
     def get_event(self, event) -> str | None:
         self.player.get_event(event)
         if self.state != "run":
@@ -77,6 +81,9 @@ class Level:
             projectile_hit.kill()
             self.enemy.kill()
             self.state = "win"
+            pg.mixer.stop()
+
+            self.sound_win.play()
 
         # Player collision
         gets_hit = pg.sprite.spritecollide(self.player, self.enemy.projectiles, True)
@@ -84,6 +91,8 @@ class Level:
             projectile_hit.kill()
             self.player.kill()
             self.state = "loss"
+            pg.mixer.stop()
+            self.sound_loss.play()
 
     # Draw all sprite groups + background
     def draw(self, surface) -> None:

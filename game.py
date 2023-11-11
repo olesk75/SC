@@ -1,6 +1,20 @@
 import settings
 import pygame as pg
 from icecream import ic
+from dataclasses import dataclass
+
+
+@dataclass()
+class FightStatus:
+    """
+    Dataclass for state of game
+    """
+
+    p1_ship: str
+    ai_ship: str
+
+    p1_wins: int = 0
+    ai_wins: int = 0
 
 
 class Game:
@@ -21,6 +35,9 @@ class Game:
         self.state = self.states[self.state_name]
         self.game_surface = pg.Surface((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT))
         self.font = pg.font.Font("freesansbold.ttf", 32)
+        self.game_status = []  # to be passed between states
+
+        self.fight_status = FightStatus(p1_ship="martian", ai_ship="plutonian")
 
     def event_loop(self) -> None:
         for event in pg.event.get():
@@ -28,11 +45,12 @@ class Game:
 
     def flip_state(self) -> None:
         current_state = self.state_name
+        self.state.done = False
         next_state = self.state.next_state
         ic("State transition:", current_state, next_state)
         self.state_name = next_state
         self.state = self.states[self.state_name]
-        self.state.startup()
+        self.state.startup(self.fight_status)
 
     def update(self) -> None:
         if self.state.quit:
