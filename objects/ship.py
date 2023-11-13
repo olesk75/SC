@@ -18,12 +18,12 @@ class Ship(GameObject):
         self.max_velocity = 10  # TODO: read from ship config
         self.min_velocity = -5  # TODO: read from ship config
 
+        self.firing = False
         self.last_fire = 0
         self.last_energy_tick = 0
 
         self.accelleration = 0
         self.slowing = 10
-
         self.turning = 0
 
         self.width = 80  # TODO: into game object
@@ -40,9 +40,7 @@ class Ship(GameObject):
                 self.max_velocity = 10
                 self.turn_speed = 5
                 self.image = pg.image.load("assets/ships/martian.png").convert_alpha()
-                self.image_engines = pg.image.load(
-                    "assets/ships/martian-engines-full.png"
-                ).convert_alpha()
+                self.image_engines = pg.image.load("assets/ships/martian-engines-full.png").convert_alpha()
                 self.special = "teleport"
                 self.fire_sound = pg.mixer.Sound("assets/sounds/shot_5.wav")
                 self.special_sound = pg.mixer.Sound("assets/sounds/change_1.wav")
@@ -55,9 +53,7 @@ class Ship(GameObject):
                 self.max_velocity = 15
                 self.turn_speed = 5
                 self.image = pg.image.load("assets/ships/plutonian.png").convert_alpha()
-                self.image_engines = pg.image.load(
-                    "assets/ships/plutonian-engines-full.png"
-                ).convert_alpha()
+                self.image_engines = pg.image.load("assets/ships/plutonian-engines-full.png").convert_alpha()
                 self.special = "shield"
                 self.fire_sound = pg.mixer.Sound("assets/sounds/fire_2.wav")
                 self.special_sound = pg.mixer.Sound("assets/sounds/shot_5.wav")
@@ -145,9 +141,7 @@ class Ship(GameObject):
         self.spin(self.turning, self.turn_speed)
 
         # Rotation
-        self.image, self.rect = self._rotatesprite(
-            self.image_orig, self.rect_orig, self.state.heading
-        )
+        self.image, self.rect = self._rotatesprite(self.image_orig, self.rect_orig, self.state.heading)
 
         # Movement
         self.state.x_pos -= int(math.sin(math.radians(self.state.heading)) * self.state.velocity)
@@ -165,3 +159,7 @@ class Ship(GameObject):
             self.state.energy += self.recharge
             if self.state.energy > self.state.max_energy:
                 self.state.energy = self.state.max_energy
+
+        # Self firing
+        if self.firing:
+            self.fire()

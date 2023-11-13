@@ -60,7 +60,6 @@ class Level:
 
     # Update all objects
     def update(self) -> None:
-        # self.enemy.think(self.player, self.player.projectiles)
         self.player.update()
 
         # Updates the players's projectile sprites
@@ -71,7 +70,7 @@ class Level:
 
         self.enemy.projectiles.update()
 
-        self.enemy.think(self.player, self.player.projectiles)
+        self.enemy.ai.update(self.player)
         # Update obstacles
 
         # Check collisions

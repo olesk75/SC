@@ -97,7 +97,7 @@ class Ready(BaseState):
         t_result_x = int(SCREEN_WIDTH / 2) - int(t_result.get_width() / 2)
         t_result_y = int(SCREEN_HEIGHT * 0.1)
 
-        t_top = self.font_large.render(f"Ready to go again?", True, pg.Color("white"))
+        t_top = self.font.render(f"Ready to go again?", True, pg.Color("white"))
         t_top_x = int(SCREEN_WIDTH / 2) - int(t_top.get_width() / 2)
         t_top_y = int(SCREEN_HEIGHT * 0.3)
 
