@@ -20,7 +20,6 @@ class GamePlay(BaseState):
         self.level.startup(self.current_level)
         self.name = "GAMEPLAY"
         self.next_state = "READY"
-        self.win: bool  # gets set when we have a winner
 
     # Get events from level instance, which in turn gets events from player instance(s)
     def get_event(self, event) -> None:
@@ -34,12 +33,12 @@ class GamePlay(BaseState):
         self.level.update()
 
         if self.level.state == "win":
-            self.win = True
             self.done = True
+            self.fight_status.win = True
             self.fight_status.p1_wins += 1
             print("WIN")
         if self.level.state == "loss":
-            self.win = False
+            self.fight_status.win = False
             self.done = True
             self.fight_status.ai_wins += 1
             print("LOSS")

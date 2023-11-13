@@ -13,6 +13,8 @@ class FightStatus:
     p1_ship: str
     ai_ship: str
 
+    win: bool = False
+
     p1_wins: int = 0
     ai_wins: int = 0
 

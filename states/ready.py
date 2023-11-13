@@ -13,6 +13,7 @@ class Ready(BaseState):
         self.options = ["Start Game Player vs AI", "Start Game Player vs Player", "Quit Game"]
         self.name = "READY"
         self.next_state = "GAMEPLAY"
+        self.font_very_large = pg.font.Font("assets/fonts/spacegame/Space Game.ttf", size=144)
         self.font_large = pg.font.Font("assets/fonts/spacegame/Space Game.ttf", size=72)
         self.font = pg.font.Font("assets/fonts/spacegame/Space Game.ttf", size=48)
         self.font_small = pg.font.Font("assets/fonts/spacegame/Space Game.ttf", size=24)
@@ -63,9 +64,7 @@ class Ready(BaseState):
         pg.draw.rect(surface, pg.Color("white"), pg.Rect(x1_pos, y_pos, height, width))
         pg.draw.rect(surface, pg.Color("white"), pg.Rect(x2_pos - width, y_pos, height, width))
 
-        pg.draw.rect(
-            surface, pg.Color("black"), pg.Rect(x1_pos + 10, y_pos + 10, height - 20, width - 20)
-        )
+        pg.draw.rect(surface, pg.Color("black"), pg.Rect(x1_pos + 10, y_pos + 10, height - 20, width - 20))
         pg.draw.rect(
             surface,
             pg.Color("black"),
@@ -90,58 +89,53 @@ class Ready(BaseState):
         elif self.fight_status.p1_wins < self.fight_status.ai_wins:
             ai_lead = self.fight_status.ai_wins - self.fight_status.p1_wins
 
-        text_top = self.font_large.render(f"Ready?", True, pg.Color("white"))
-        text_top_x = int(SCREEN_WIDTH / 2) - int(text_top.get_width() / 2)
-        text_top_y = int(SCREEN_HEIGHT * 0.3)
+        if self.fight_status.win:
+            t_result = self.font_very_large.render(f"YOU WIN!", True, pg.Color("white"))
+        else:
+            t_result = self.font_very_large.render(f"YOU LOOSE!", True, pg.Color("white"))
 
-        text_wins = self.font.render(
+        t_result_x = int(SCREEN_WIDTH / 2) - int(t_result.get_width() / 2)
+        t_result_y = int(SCREEN_HEIGHT * 0.1)
+
+        t_top = self.font_large.render(f"Ready to go again?", True, pg.Color("white"))
+        t_top_x = int(SCREEN_WIDTH / 2) - int(t_top.get_width() / 2)
+        t_top_y = int(SCREEN_HEIGHT * 0.3)
+
+        t_wins = self.font.render(
             f"WINS:          {self.fight_status.p1_wins}                    {self.fight_status.ai_wins}",
             True,
             pg.Color("white"),
         )
-        text_wins_x = int(SCREEN_WIDTH / 2) - int(text_wins.get_width() / 2 + SCREEN_WIDTH * 0.12)
-        text_wins_y = int(SCREEN_HEIGHT * 0.6)
+        t_wins_x = int(SCREEN_WIDTH / 2) - int(t_wins.get_width() / 2 + SCREEN_WIDTH * 0.12)
+        t_wins_y = int(SCREEN_HEIGHT * 0.6)
 
-        text_lead = self.font.render(
+        t_lead = self.font.render(
             f"LEAD:          {p1_lead}                    {ai_lead}",
             True,
             pg.Color("white"),
         )
-        text_lead_x = int(SCREEN_WIDTH / 2) - int(text_wins.get_width() / 2 + SCREEN_WIDTH * 0.124)
-        text_lead_y = int(SCREEN_HEIGHT * 0.65)
+        t_lead_x = int(SCREEN_WIDTH / 2) - int(t_wins.get_width() / 2 + SCREEN_WIDTH * 0.124)
+        t_lead_y = int(SCREEN_HEIGHT * 0.65)
 
-        text_explainer = self.font.render(
-            f"FIRST TO 10 WINS OR LEADING BY 3 WINS!", True, pg.Color("white")
-        )
+        t_explainer = self.font.render(f"FIRST TO 10 WINS OR LEADING BY 3 WINS!", True, pg.Color("white"))
+        t_explainer_x = middle - int(t_explainer.get_width()) / 2
+        t_explainer_y = int(SCREEN_HEIGHT * 0.8)
 
         self.gray_tone += self.color_change
         if self.gray_tone >= 255 - self.color_change or self.gray_tone + self.color_change <= 0:
             self.color_change *= -1
 
-        text_continue = self.font_small.render(
+        t_continue = self.font_small.render(
             f"PRESS SPACE TO CONTINUE OR ESC TO EXIT",
             True,
             pg.Color(self.gray_tone, self.gray_tone, self.gray_tone),
         )
+        t_continue_x = middle - int(t_continue.get_width()) / 2
+        t_continue_y = int(SCREEN_HEIGHT * 0.9)
 
-        surface.blit(text_top, (text_top_x, text_top_y))
-        surface.blit(text_wins, (text_wins_x, text_wins_y))
-        surface.blit(text_lead, (text_lead_x, text_lead_y))
-        surface.blit(
-            text_explainer,
-            (
-                (
-                    middle - int(text_explainer.get_width()) / 2,
-                    (int(SCREEN_HEIGHT * 0.8)),
-                )
-            ),
-        )
-        surface.blit(
-            text_continue,
-            (
-                (
-                    middle - int(text_continue.get_width()) / 2,
-                    (int(SCREEN_HEIGHT * 0.9)),
-                )
-            ),
-        )
+        surface.blit(t_result, (t_result_x, t_result_y))
+        surface.blit(t_top, (t_top_x, t_top_y))
+        surface.blit(t_wins, (t_wins_x, t_wins_y))
+        surface.blit(t_lead, (t_lead_x, t_lead_y))
+        surface.blit(t_explainer, (t_explainer_x, t_explainer_y))
+        surface.blit(t_continue, (t_continue_x, t_continue_y))
