@@ -22,6 +22,7 @@ class EnemyAI(Ship):
         direction = 0
         super().__init__(x_pos, y_pos, direction, velocity, heading, ship_type)
         self.projectiles = pg.sprite.Group()
+        self.engine_trails = pg.sprite.Group()
 
         self.ai = AI(self, skill=skill, ship_type=ship_type)
 
@@ -32,6 +33,7 @@ class Player(Ship):
         direction = 0
         super().__init__(x_pos, y_pos, direction, velocity, heading, ship_type)
         self.projectiles = pg.sprite.Group()
+        self.engine_trails = pg.sprite.Group()
 
     def get_event(self, event) -> None:
         # Checking if a new key is pressed down

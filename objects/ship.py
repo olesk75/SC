@@ -1,4 +1,4 @@
-from .gameobject import GameObject, Projectile
+from .gameobject import GameObject, Projectile, EngineTrail
 from settings import SCREEN_HEIGHT, SCREEN_WIDTH
 
 import pygame as pg
@@ -14,6 +14,10 @@ class Ship(GameObject):
     """
 
     def __init__(self, x_pos, y_pos, direction, velocity, heading, ship_type) -> None:
+        # Placeholders overridden by child objects
+        self.projectiles = pg.sprite.Group()
+        self.engine_trails = pg.sprite.Group()
+
         self.ship_type = ship_type
         self.max_velocity = 10  # TODO: read from ship config
         self.min_velocity = -5  # TODO: read from ship config
@@ -43,7 +47,9 @@ class Ship(GameObject):
                 self.image_engines = pg.image.load("assets/ships/martian-engines-full.png").convert_alpha()
                 self.special = "teleport"
                 self.fire_sound = pg.mixer.Sound("assets/sounds/shot_5.wav")
+                self.fire_sound.set_volume(0.9)
                 self.special_sound = pg.mixer.Sound("assets/sounds/change_1.wav")
+                self.special_sound.set_volume(0.4)
             case "plutonian":
                 self.health = 2000
                 self.shield = 500
@@ -56,7 +62,9 @@ class Ship(GameObject):
                 self.image_engines = pg.image.load("assets/ships/plutonian-engines-full.png").convert_alpha()
                 self.special = "shield"
                 self.fire_sound = pg.mixer.Sound("assets/sounds/fire_2.wav")
+                self.fire_sound.set_volume(0.9)
                 self.special_sound = pg.mixer.Sound("assets/sounds/shot_5.wav")
+                self.special_sound.set_volume(0.5)
             case _:
                 raise ValueError(f"{ship_type} is not an allowed ship type")
 
@@ -114,6 +122,10 @@ class Ship(GameObject):
             )
             self.projectiles.add(p)
 
+    # TODO: placeholder
+    def trigger_shield(self) -> None:
+        return super().trigger_shield()
+
     def fire_special(self) -> None:
         match self.ship_type:
             case "martian":
@@ -137,6 +149,8 @@ class Ship(GameObject):
                     self.state.velocity += 1
                 else:
                     self.state.velocity -= 1
+                    et = EngineTrail(self.state.x_pos, self.state.y_pos, "regular")
+                    self.engine_trails.add(et)
 
         self.spin(self.turning, self.turn_speed)
 

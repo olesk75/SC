@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from abc import ABC, abstractmethod
 from icecream import ic
 import pygame as pg
 import math
@@ -39,7 +40,7 @@ class GameObjectState:
     exploding: bool = False  # if object is currently exploding
 
 
-class GameObject(pg.sprite.Sprite):
+class GameObject(pg.sprite.Sprite, ABC):
     """Metaclass for all game objects, like enemies, player, bullets, powerups etc.
 
     The class inherits from the Sprite class. Object is added to a sprite group, which then is used for calling the draw(method)
@@ -81,7 +82,7 @@ class GameObject(pg.sprite.Sprite):
 
     def accelerate(self, direction) -> None:
         # TODO: add acceleration factor depending on ship type
-        ship_accelleration = 1
+        ship_accelleration = 0.1
         ship_max_speed = 100
         ship_min_speed = -10
         self.speed += ship_accelleration * direction
@@ -97,6 +98,7 @@ class GameObject(pg.sprite.Sprite):
         if self.state.heading < 0:
             self.state.heading += 360
 
+    @abstractmethod
     def fire(self, primary: bool) -> None:
         if primary:
             # firing primary weapon
@@ -105,6 +107,7 @@ class GameObject(pg.sprite.Sprite):
             # firing secondary weapon
             pass
 
+    @abstractmethod
     def trigger_shield(self) -> None:
         pass
 
@@ -114,13 +117,12 @@ class GameObject(pg.sprite.Sprite):
         rot_rect = rot_image.get_rect(center=rect.center)
         return rot_image, rot_rect
 
+    @abstractmethod
     def update(self) -> None:
         print(f"Speed: {self.speed}, rotation: {self.state.heading}")
 
     def draw(self) -> None:
-        raise RuntimeError(
-            "Never use draw method directly. Include in sprite group and call draw() on that instead"
-        )
+        raise RuntimeError("Never use draw method directly. Include in sprite group and call draw() on that instead")
         exit(1)
 
 
@@ -130,6 +132,44 @@ class Obstacle(GameObject):
             x_pos, y_pos, health, shield, 0, 0, 0, 0, 0, 0, 0
         )  # obstacles have no direction, velocity nor heading
         self.destructible = destructible
+
+    # TODO: missing compulsory functions
+
+
+class EngineTrail(pg.sprite.Sprite):
+    """EngineTrail helps see direction of travel for ships, as it leaves small blobs behind which slowly fade out"""
+
+    def __init__(self, x, y, type) -> None:
+        super().__init__()
+
+        width = height = 30
+        self.lifespan = 10
+        self.ticks = 0
+
+        self.type = type
+        if type == "regular":
+            self.lifespan = 10
+            width = height = 30
+
+        self.image = pg.Surface([width, height])
+        self.image.fill("#ff0000")
+
+        # Update the position of this object by setting the values of rect.x and rect.y
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+    def update(self) -> None:
+        self.ticks += 1
+
+        if self.ticks >= self.lifespan:
+            self.kill()
+
+        alpha = int((1 - (self.ticks / self.lifespan)) * 255)
+
+        self.image.set_alpha(alpha)
+
+        ic(self.ticks, self.lifespan)
 
 
 class Projectile(GameObject):
@@ -162,7 +202,7 @@ class Projectile(GameObject):
             max_velocity,
         )
 
-        self.expiry_time: int
+        self.expiry_time = expiry_time
         self.explode: bool
         self.explosion_size: int
 
@@ -180,6 +220,12 @@ class Projectile(GameObject):
             self.expiry_time = 60  # 60 tics * 3 = 3 seconds
             self.explode = True
             self.explosion_size = 50
+
+    def fire(self, primary: bool) -> None:
+        return super().fire(primary)
+
+    def trigger_shield(self) -> None:
+        return super().trigger_shield()
 
     def update(self) -> None:
         self.ticks += 1

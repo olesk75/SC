@@ -42,9 +42,6 @@ class Level:
         self.player_sprites = pg.sprite.GroupSingle()
         self.player_sprites.add(self.player)
 
-        # Projectiles sprite goup
-        self.projectile_sprites = pg.sprite.Group()
-
         # EnemyAI sprite group
         self.enemy_ai_sprites = pg.sprite.GroupSingle()
         self.enemy_ai_sprites.add(self.enemy)
@@ -52,6 +49,9 @@ class Level:
         # Win and loss sounds
         self.sound_win = pg.mixer.Sound("assets/sounds/win_1.wav")
         self.sound_loss = pg.mixer.Sound("assets/sounds/lose_1.wav")
+
+        self.sound_win.set_volume(0.5)
+        self.sound_win.set_volume(0.5)
 
     def get_event(self, event) -> str | None:
         self.player.get_event(event)
@@ -64,11 +64,13 @@ class Level:
 
         # Updates the players's projectile sprites
         self.player.projectiles.update()
+        self.player.engine_trails.update()
 
-        # Update enimies and their projectiles
+        # Update enemies and their projectiles
         self.enemy.update()
 
         self.enemy.projectiles.update()
+        self.enemy.engine_trails.update()
 
         self.enemy.ai.update(self.player)
         # Update obstacles
@@ -107,5 +109,8 @@ class Level:
 
         self.player_sprites.draw(surface)
         self.player.projectiles.draw(surface)
+        self.player.engine_trails.draw(surface)
+
         self.enemy_ai_sprites.draw(surface)
         self.enemy.projectiles.draw(surface)
+        self.enemy.engine_trails.draw(surface)
