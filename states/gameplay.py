@@ -32,12 +32,12 @@ class GamePlay(BaseState):
     def update(self) -> None:
         self.level.update()
 
-        if self.level.state == "win":
+        if self.level.state == "win" and not self.level.explosion:
             self.done = True
             self.fight_status.win = True
             self.fight_status.p1_wins += 1
             print("WIN")
-        if self.level.state == "loss":
+        if self.level.state == "loss" and not self.level.explosion:
             self.fight_status.win = False
             self.done = True
             self.fight_status.ai_wins += 1

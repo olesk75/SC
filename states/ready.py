@@ -1,9 +1,9 @@
+import pygame as pg
+from icecream import ic
+
 from .base import BaseState
 from objects.ship import Ship
 from settings import SCREEN_HEIGHT, SCREEN_WIDTH
-from icecream import ic
-
-import pygame as pg
 
 
 class Ready(BaseState):

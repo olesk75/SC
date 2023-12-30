@@ -15,8 +15,9 @@ class Menu(BaseState):
         color = pg.Color("red") if index == self.active_index else pg.Color("white")
         return self.font.render(self.options[index], True, color)
 
-    def get_text_position(self, text, index):
-        center = (self.screen_rect.center[0], self.screen_rect.center[1] + (index * 50))
+    def get_text_position(self, text, index, surface) -> pg.Rect:
+        screen_rect = surface.get_rect()
+        center = (screen_rect.center[0], screen_rect.center[1] + (index * 50))
         return text.get_rect(center=center)
 
     def handle_action(self) -> None:
@@ -40,4 +41,4 @@ class Menu(BaseState):
         surface.fill(pg.Color("black"))
         for index, option in enumerate(self.options):
             text_render = self.render_text(index)
-            surface.blit(text_render, self.get_text_position(text_render, index))
+            surface.blit(text_render, self.get_text_position(text_render, index, surface))
