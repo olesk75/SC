@@ -11,11 +11,11 @@ from states.gameplay import GamePlay
 from states.ready import Ready
 from states.gameover import GameOver
 from states.splash import Splash
-from game import Game
+from gameGL import GameGL
 import settings
 
 
-FPS = 60
+FPS = 144
 
 # pg setup
 # Initializing
@@ -33,7 +33,7 @@ states = {
     "GAME_OVER": GameOver(),
 }
 
-game = Game(states, "SPLASH", FPS)
+game = GameGL(states, "SPLASH", FPS)
 game.run()
 
 pg.mixer.fadeout(1000)

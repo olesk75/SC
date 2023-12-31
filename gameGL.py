@@ -1,10 +1,13 @@
 import moderngl
 from array import array
+import time, os
 import pygame as pg
+from pathlib import Path
 from icecream import ic
 from dataclasses import dataclass
 
 import settings
+
 
 
 @dataclass()
@@ -22,10 +25,12 @@ class FightStatus:
     ai_wins: int = 0
 
 
-class Game:
+class GameGL:
     """
     Class which mostly calls the same methods for whatever state is currently active,
     including GAMEPLAY.
+
+    It also handles the ModernGL integration
 
     The run() method is looping until the game exits
     """
@@ -38,56 +43,48 @@ class Game:
         monitor_res = (current_screen.current_w, current_screen.current_h)
         width, height = settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT
 
+        scale = (current_screen.current_h - 100) / settings.SCREEN_HEIGHT
+
         ic("Screen resolution", width, height, monitor_res)
 
+        x = 10 
+        y = 10
+        os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x,y)
         FLAGS = pg.OPENGL | pg.DOUBLEBUF  # flags = pg.FULLSCREEN | pg.HWSURFACE | pg.SCALED
-        self.screen = pg.display.set_mode((width, height), FLAGS)
+        self.screen = pg.display.set_mode((width * scale, height * scale), FLAGS)
 
         """
+        --------------------------------------------------------------------------------
         ModernGL 
+        --------------------------------------------------------------------------------
         """
-        self.ctx = moderngl.create_context()  # only works if we have pg.OPENGL above
+
+        # We need a context, and the create_context() method will detect and 
+        # connect to the pygame window
+        self.ctx = moderngl.create_context()
+        ic(self.ctx.info["GL_RENDERER"])
         quad_buffer = self.ctx.buffer(data=array('f', [
-            # vertex coordiantes (x,y), uv coords (x,y)
+        # vertex coordiantes (x,y), uv coords (x,y)
            -1.0, 1.0, 0.0, 0.0,  # top left
            1.0, 1.0, 1.0, 0.0,   # top right
            -1.0,-1.0, 0.0, 1.0,  # bottom left
            1.0, -1.0, 1.0, 1.0,  # bottom right
         ])) 
 
-        vert_shader = '''
-        #version 330 core
+        glsl_folder = Path("glsl/")
 
-        // describing our inputs, using bec2 datatypes (mutable unlike tuples)
-        in vec2 vert;       // vertex coordinates
-        in vec2 texcoord;  // uv coordinates
-        out vec2 uvs;       // output uv coords (vert shader has vertex coords sorted already)
-
-        void main() {
-            uvs = texcoord;  //passing through
-            gl_Position = vec4(vert, 0.0, 1.0);  // vertex coordinates (vert.x and vert.y), z=0.0
-
-        }
-        '''
+        with open(glsl_folder / "vertex_shader.glsl", 'r') as file:
+            vert_shader = file.read()
 
         # Runs for every pixel in the vertices defined in the vertex shader
-        frag_shader = '''
-        #version 330 core
+        with open(glsl_folder / "frag_shader.glsl", 'r') as file:
+            frag_shader = file.read()
 
-        uniform sampler2D tex;  // different type of input, same for _all_ parallel processes, samples texture values
-
-        in vec2 uvs;
-        out vec4 f_color;
-
-        void main(){
-            f_color = vec4(texture(tex, uvs).rgb, 1.0);  // 1.0 is transparence
-        }
-        '''
-
+        ic('Shader compilation start')
         self.program = self.ctx.program(vert_shader, frag_shader)  # compiles GLSL code
-        self.render_object = self.ctx.vertex_array(self.program, [(quad_buffer, '2f 2f', 'vert', 'texcoord')])
-
-        
+        self.render_object = self.ctx.vertex_array(self.program, [(quad_buffer, '2f 2f', 'in_vert', 'in_texcoord')])
+        ic('Shader compilation end')
+        self.start_time = time.time()
 
         self.clock = pg.time.Clock()
         self.FPS = FPS
@@ -102,7 +99,7 @@ class Game:
 
     # We need to convert our python surface into an OpenGL texture
     def surf_to_texture(self, surf) -> moderngl.Texture:
-        tex = self.ctx.texture(surf.get_size(), 4)  # 4 because R,G,B,A
+        tex = self.ctx.texture(surf.get_size(), 4)  # RGBA (4 component) f1 texture, as dype="f4" by default
         tex.filter = (moderngl.NEAREST, moderngl.NEAREST)  # how to convert pixels (try INEEAR)
         tex.swizzle = 'BGRA'  # swapping channels around between pygame and OpenGL
         tex.write(surf.get_view('1'))
@@ -142,7 +139,8 @@ class Game:
 
         frame_tex = self.surf_to_texture(self.game_surface)
         frame_tex.use(0)  # Set use location 0
-        self.program['tex'] = 0  #  Write to tex uniform the value 0
+        self.program['u_tex'] = 0  #  Write to tex uniform the value 0
+        #self.program['u_time'] = time.time() - self.start_time  # writing elapsed time to framentation shader
         self.render_object.render(mode=moderngl.TRIANGLE_STRIP)  # Triangle strip used to convert our quad_buffer
  
         #self.screen.blit(self.game_surface, (0, 0))
