@@ -15,7 +15,7 @@ from gameGL import GameGL
 import settings
 
 
-FPS = 144
+FPS = settings.FPS
 
 # pg setup
 # Initializing

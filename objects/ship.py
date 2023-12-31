@@ -2,6 +2,7 @@ from .gameobject import GameObject, Projectile, EngineTrail
 from settings import SCREEN_HEIGHT, SCREEN_WIDTH
 
 import pygame as pg
+import time
 from icecream import ic
 import math
 import random
@@ -25,6 +26,7 @@ class Ship(GameObject):
         self.firing = False
         self.last_fire = 0
         self.last_energy_tick = 0
+        self.last_engine_trail = 0
 
         self.accelleration = 0
         self.slowing = 10
@@ -43,8 +45,12 @@ class Ship(GameObject):
                 self.fire_rate = 100  # lower is faster
                 self.max_velocity = 10
                 self.turn_speed = 5
-                self.image = pg.image.load("assets/ships/martian.png").convert_alpha()
-                self.image_engines = pg.image.load("assets/ships/martian-engines-full.png").convert_alpha()
+                self.image_zoom1 = pg.image.load("assets/ships/martian_1.png").convert_alpha()
+                self.image_zoom1_engines = pg.image.load("assets/ships/martian_1-engines.png").convert_alpha()
+                self.image_zoom2 = pg.image.load("assets/ships/martian_2.png").convert_alpha()
+                self.image_zoom2_engines = pg.image.load("assets/ships/martian_2-engines.png").convert_alpha()
+                self.image_zoom3 = pg.image.load("assets/ships/martian_3.png").convert_alpha()
+                self.image_zoom3_engines = pg.image.load("assets/ships/martian_3-engines.png").convert_alpha()
                 self.special = "teleport"
                 self.fire_sound = pg.mixer.Sound("assets/sounds/shot_5.wav")
                 self.fire_sound.set_volume(0.9)
@@ -58,8 +64,12 @@ class Ship(GameObject):
                 self.fire_rate = 500
                 self.max_velocity = 15
                 self.turn_speed = 5
-                self.image = pg.image.load("assets/ships/plutonian.png").convert_alpha()
-                self.image_engines = pg.image.load("assets/ships/plutonian-engines-full.png").convert_alpha()
+                self.image_zoom1 = pg.image.load("assets/ships/plutonian_1.png").convert_alpha()
+                self.image_zoom1_engines = pg.image.load("assets/ships/plutonian_1-engines.png").convert_alpha()
+                self.image_zoom2 = pg.image.load("assets/ships/plutonian_2.png").convert_alpha()
+                self.image_zoom2_engines = pg.image.load("assets/ships/plutonian_2-engines.png").convert_alpha()
+                self.image_zoom3 = pg.image.load("assets/ships/plutonian_3.png").convert_alpha()
+                self.image_zoom3_engines = pg.image.load("assets/ships/plutonian_3-engines.png").convert_alpha()
                 self.special = "shield"
                 self.fire_sound = pg.mixer.Sound("assets/sounds/fire_2.wav")
                 self.fire_sound.set_volume(0.9)
@@ -68,6 +78,7 @@ class Ship(GameObject):
             case _:
                 raise ValueError(f"{ship_type} is not an allowed ship type")
 
+        self.image = self.image_zoom1  # we start with lowest zoom level
         self.rect = self.image.get_rect()
 
         # We need these for roations etc.
@@ -133,14 +144,20 @@ class Ship(GameObject):
                 self.state.y_pos = random.randint(100, SCREEN_HEIGHT - 100)
                 self.special_sound.play()
 
-    def update(self) -> None:
+    def update(self, zoom) -> None:
         # From accelleration to speed to coordinates
         if (self.state.velocity < self.max_velocity and self.state.velocity > 0) or (
             self.state.velocity > self.min_velocity and self.state.velocity <= 0
         ):
             self.state.velocity += self.accelleration
+            
+        # Add engine trails if we're accellerating
+        if self.accelleration > 0 and time.time() - self.last_engine_trail > 0.1:
+            et = EngineTrail(self.state.x_pos, self.state.y_pos, "regular")
+            self.engine_trails.add(et)
+            self.last_engine_trail = time.time()
 
-        # We make the speed drop off slowly - we have 60 FPS, so this gets run 60
+        # We make the speed drop off slowly - we have 60 FPS, so this gets run 60 times
         self.slowing -= 1
         if self.slowing == 0:
             self.slowing = 10
@@ -149,17 +166,22 @@ class Ship(GameObject):
                     self.state.velocity += 1
                 else:
                     self.state.velocity -= 1
-                    et = EngineTrail(self.state.x_pos, self.state.y_pos, "regular")
-                    self.engine_trails.add(et)
+                   
 
         self.spin(self.turning, self.turn_speed)
+
+        # Zoom level
+        if zoom == 1: self.image_orig = self.image_zoom1
+        if zoom == 2: self.image_orig = self.image_zoom2
+        if zoom == 3: self.image_orig = self.image_zoom3
+        self.rect_orig = self.image_orig.get_rect()
 
         # Rotation
         self.image, self.rect = self._rotatesprite(self.image_orig, self.rect_orig, self.state.heading)
 
         # Movement
-        self.state.x_pos -= int(math.sin(math.radians(self.state.heading)) * self.state.velocity)
-        self.state.y_pos -= int(math.cos(math.radians(self.state.heading)) * self.state.velocity)
+        self.state.x_pos -= int(math.sin(math.radians(self.state.heading)) * self.state.velocity / zoom)
+        self.state.y_pos -= int(math.cos(math.radians(self.state.heading)) * self.state.velocity / zoom)
 
         # Position
         self.rect.center = (self.state.x_pos, self.state.y_pos)
@@ -177,3 +199,7 @@ class Ship(GameObject):
         # Self firing
         if self.firing:
             self.fire()
+
+
+        # Switch surface and rect if zoom level has changed
+            

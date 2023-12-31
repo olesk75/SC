@@ -111,7 +111,7 @@ class GameObject(pg.sprite.Sprite, ABC):
     def trigger_shield(self) -> None:
         pass
 
-    def _rotatesprite(self, image, rect, angle) -> tuple[pg.Surface, pg.Rect]:
+    def _rotatesprite(self, image:pg.Surface, rect:pg.Rect, angle) -> tuple[pg.Surface, pg.Rect]:
         """rotate an image while keeping its center"""
         rot_image = pg.transform.rotate(image, angle)
         rot_rect = rot_image.get_rect(center=rect.center)
@@ -142,17 +142,19 @@ class EngineTrail(pg.sprite.Sprite):
     def __init__(self, x, y, type) -> None:
         super().__init__()
 
-        width = height = 30
-        self.lifespan = 10
+        width = height = 5
+        self.lifespan = 30
         self.ticks = 0
+
+        self.color = pg.Color(255,255,0)  # we start yellow
 
         self.type = type
         if type == "regular":
-            self.lifespan = 10
-            width = height = 30
+            self.lifespan = 30
+            width = height = 5
 
         self.image = pg.Surface([width, height])
-        self.image.fill("#ff0000")
+        self.image.fill("#ffcc00")
 
         # Update the position of this object by setting the values of rect.x and rect.y
         self.rect = self.image.get_rect()
@@ -165,11 +167,12 @@ class EngineTrail(pg.sprite.Sprite):
         if self.ticks >= self.lifespan:
             self.kill()
 
-        alpha = int((1 - (self.ticks / self.lifespan)) * 255)
+        #alpha = int((1 - (self.ticks / self.lifespan)) * 255)
+    
+        #self.color.g -= self.ticks
+        #self.image.fill(self.color)
+        #self.image.set_alpha(alpha)
 
-        self.image.set_alpha(alpha)
-
-        ic(self.ticks, self.lifespan)
 
 
 class Projectile(GameObject):

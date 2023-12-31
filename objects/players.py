@@ -6,6 +6,7 @@ from icecream import ic
 import math
 
 
+
 class EnemyPlayer(Ship):
     def __init__(self, x_pos, y_pos, direction, velocity, heading, ship_type) -> None:
         super().__init__(x_pos, y_pos, direction, velocity, heading, ship_type)

@@ -38,7 +38,6 @@ class AI:
         - if we have shields, use them if the player gets a projectile close to us
 
         """
-        ic(self.state)
         # If we're either hunting or escaping, we accellerate to max
         # if set(['hunt', 'escape']).issubset(self.strategies):
         if self.state == "hunting":

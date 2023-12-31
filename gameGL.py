@@ -46,10 +46,16 @@ class GameGL:
         scale = (current_screen.current_h - 100) / settings.SCREEN_HEIGHT
 
         ic("Screen resolution", width, height, monitor_res)
+        
+        # Tons of stuff to prevent Macs from freaking out
+        pg.display.gl_set_attribute(pg.GL_CONTEXT_MAJOR_VERSION, 3)
+        pg.display.gl_set_attribute(pg.GL_CONTEXT_MINOR_VERSION, 3)
+        pg.display.gl_set_attribute(pg.GL_CONTEXT_PROFILE_MASK, pg.GL_CONTEXT_PROFILE_CORE)
+        pg.display.gl_set_attribute(pg.GL_CONTEXT_FORWARD_COMPATIBLE_FLAG, True)
 
         x = 10 
         y = 10
-        os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x,y)
+        os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x,y)  # We place scaled window top left
         FLAGS = pg.OPENGL | pg.DOUBLEBUF  # flags = pg.FULLSCREEN | pg.HWSURFACE | pg.SCALED
         self.screen = pg.display.set_mode((width * scale, height * scale), FLAGS)
 
@@ -64,7 +70,7 @@ class GameGL:
         self.ctx = moderngl.create_context()
         ic(self.ctx.info["GL_RENDERER"])
         quad_buffer = self.ctx.buffer(data=array('f', [
-        # vertex coordiantes (x,y), uv coords (x,y)
+            # vertex coordiantes (x,y), uv coords (x,y)
            -1.0, 1.0, 0.0, 0.0,  # top left
            1.0, 1.0, 1.0, 0.0,   # top right
            -1.0,-1.0, 0.0, 1.0,  # bottom left
@@ -81,6 +87,8 @@ class GameGL:
             frag_shader = file.read()
 
         ic('Shader compilation start')
+        
+
         self.program = self.ctx.program(vert_shader, frag_shader)  # compiles GLSL code
         self.render_object = self.ctx.vertex_array(self.program, [(quad_buffer, '2f 2f', 'in_vert', 'in_texcoord')])
         ic('Shader compilation end')
