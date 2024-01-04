@@ -23,7 +23,7 @@ class AI:
         elif time.time() - self.trigger_time > 1 - self.skill:
             self.state = new_state
 
-    def update(self, player) -> None:
+    def update(self, player, zoom, h_scroll, v_scroll) -> None:
         """
         Basic enemy AI, simulating inputs
 
@@ -38,6 +38,10 @@ class AI:
         - if we have shields, use them if the player gets a projectile close to us
 
         """
+
+        self.ai.rect.centerx = self.ai.state.x_pos + h_scroll
+        self.ai.rect.centery = self.ai.state.y_pos + v_scroll
+
         # If we're either hunting or escaping, we accellerate to max
         # if set(['hunt', 'escape']).issubset(self.strategies):
         if self.state == "hunting":
@@ -59,7 +63,7 @@ class AI:
             dx = player.rect.centerx - self.ai.rect.centerx
             dy = player.rect.centery - self.ai.rect.centery
 
-            if dx + dy < 300:
+            if dx + dy < 1:  
                 self._change_state("attacking")
 
         # TODO: define distance limits

@@ -142,6 +142,9 @@ class EngineTrail(pg.sprite.Sprite):
     def __init__(self, x, y, type) -> None:
         super().__init__()
 
+        self.pos_x = x
+        self.pos_y = y
+
         width = height = 5
         self.lifespan = 30
         self.ticks = 0
@@ -158,14 +161,18 @@ class EngineTrail(pg.sprite.Sprite):
 
         # Update the position of this object by setting the values of rect.x and rect.y
         self.rect = self.image.get_rect()
-        self.rect.x = x
-        self.rect.y = y
+        
+        self.rect.x = self.pos_x
+        self.rect.y = self.pos_y
 
-    def update(self) -> None:
+    def update(self, zoom, h_scroll, v_scroll) -> None:
         self.ticks += 1
 
         if self.ticks >= self.lifespan:
             self.kill()
+
+        self.rect.x += self.pos_x + h_scroll
+        self.rect.y += self.pos_y + v_scroll
 
         #alpha = int((1 - (self.ticks / self.lifespan)) * 255)
     
@@ -230,7 +237,7 @@ class Projectile(GameObject):
     def trigger_shield(self) -> None:
         return super().trigger_shield()
 
-    def update(self) -> None:
+    def update(self, zoom, h_scroll, v_scroll) -> None:
         self.ticks += 1
 
         # If we're too old we die or explode
@@ -247,4 +254,4 @@ class Projectile(GameObject):
         self.state.y_pos -= int(math.cos(math.radians(self.state.heading)) * self.state.velocity)
 
         # Position
-        self.rect.center = (self.state.x_pos, self.state.y_pos)
+        self.rect.center = (self.state.x_pos + h_scroll, self.state.y_pos + v_scroll)

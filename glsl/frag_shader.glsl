@@ -1,41 +1,32 @@
 #version 330 core
 
-/* Main fragment shader
+uniform sampler2D u_tex;  // let's the shader sample value from the texture u_tex
+uniform sampler2D bg_tex;
+uniform float u_time;
 
+// uniform inputs are the same for every instance
+// in inputs depends on the instance (effectively different each pixel)
 
-*/
-
-
-// Uniforms are read-only for all threads
-uniform sampler2D u_tex;    // different type of input, same for _all_ parallel processes, samples texture values
-uniform float u_time;       // placeholder until I can find a use for it
-
-in vec2 uvs;
-out vec4 f_color;
-
-
-// Plot a line on Y using a value between 0.0-1.0
-float plot(vec2 st) {    
-    return smoothstep(0.02, 0.0, abs(st.y - st.x));
-}
+in vec2 uvs;  // texture coordinates
+out vec4 f_color;  // this is the final output - the color of the pixel
 
 void main() {
-	vec2 st = gl_FragCoord.xy/100000;
+    vec2 st = gl_FragCoord.xy/1000;
 
-    float y = st.x;
+    vec3 color;
 
-    vec3 color = vec3(y);
+    // Check if the pixel is in the bottom-right corner
+    if (st.x > 0.5 && st.y < 0.5) {
+        // Add a small red square in the top-right corner
+        //color = vec3(1.0, 0.0, 0.0);
+        color = texture(u_tex, uvs).rgb + texture(bg_tex, uvs).rgb;  // we add a color overlay
+    } else {
+        // Use the texture color for the rest of the screen
+        color = texture(u_tex, uvs).rgb;
+    }
 
-    // Plot a line
-    float pct = plot(st);
-    color = (1.0-pct)*color+pct*vec3(0.0,1.0,0.0);
-
-	//gl_FragColor = vec4(color,1.0);
-    f_color = vec4(texture(u_tex, uvs).rgb, 1.0);  // 1.0 is transparency
+    f_color = vec4(color, 1.0);     // here the last figure _is_ transparency
+                                    
+    
 }
-
-/*
-void main(){
-    f_color = vec4(texture(u_tex, uvs).rgb, 1.0);  // 1.0 is transparency
-}
-*/
+ 

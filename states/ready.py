@@ -71,7 +71,7 @@ class Ready(BaseState):
             pg.Rect(x2_pos + 10 - width, y_pos + 10, height - 20, width - 20),
         )
 
-        self.ship_group.update(zoom=1)
+        self.ship_group.update(zoom=1, h_scroll=0, v_scroll=0)
         self.ship_group.draw(surface)
 
     def draw(self, surface) -> None:

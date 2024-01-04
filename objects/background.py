@@ -38,7 +38,7 @@ class Background:
         p2_energy,
     ) -> None:
         # placeholder background
-        surface.blit(self.BACKGROUND, (0, 0), area=None, special_flags=0)
+        #surface.blit(self.BACKGROUND, (0, 0), area=None, special_flags=0)
 
         p1_text1 = self.font.render(f"{p1}", True, (255, 255, 255))
         p1_text2 = self.font.render(f"{p1_health}", True, (255, 255, 255))

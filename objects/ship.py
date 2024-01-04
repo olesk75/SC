@@ -6,6 +6,7 @@ import time
 from icecream import ic
 import math
 import random
+import settings
 
 
 class Ship(GameObject):
@@ -78,12 +79,7 @@ class Ship(GameObject):
             case _:
                 raise ValueError(f"{ship_type} is not an allowed ship type")
 
-        self.image = self.image_zoom1  # we start with lowest zoom level
-        self.rect = self.image.get_rect()
-
-        # We need these for roations etc.
-        self.image_orig = self.image
-        self.rect_orig = self.rect
+        
 
         super().__init__(
             x_pos,
@@ -98,6 +94,13 @@ class Ship(GameObject):
             heading,
             self.max_velocity,
         )
+
+        self.image = self.image_zoom1  # we start with lowest zoom level
+        self.rect = self.image.get_rect()
+
+        # We need these for roations etc.
+        self.image_orig = self.image
+        self.rect_orig = self.rect
 
     def fire(self) -> None:
         now = pg.time.get_ticks()
@@ -144,7 +147,7 @@ class Ship(GameObject):
                 self.state.y_pos = random.randint(100, SCREEN_HEIGHT - 100)
                 self.special_sound.play()
 
-    def update(self, zoom) -> None:
+    def update(self, zoom, h_scroll, v_scroll) -> tuple:
         # From accelleration to speed to coordinates
         if (self.state.velocity < self.max_velocity and self.state.velocity > 0) or (
             self.state.velocity > self.min_velocity and self.state.velocity <= 0
@@ -153,7 +156,7 @@ class Ship(GameObject):
             
         # Add engine trails if we're accellerating
         if self.accelleration > 0 and time.time() - self.last_engine_trail > 0.1:
-            et = EngineTrail(self.state.x_pos, self.state.y_pos, "regular")
+            et = EngineTrail(self.state.x_pos + h_scroll, self.state.y_pos + v_scroll, "regular")
             self.engine_trails.add(et)
             self.last_engine_trail = time.time()
 
@@ -174,17 +177,38 @@ class Ship(GameObject):
         if zoom == 1: self.image_orig = self.image_zoom1
         if zoom == 2: self.image_orig = self.image_zoom2
         if zoom == 3: self.image_orig = self.image_zoom3
-        self.rect_orig = self.image_orig.get_rect()
+        self.rect_orig = self.image_orig.get_rect()  # TODO: every uipådate????
 
         # Rotation
         self.image, self.rect = self._rotatesprite(self.image_orig, self.rect_orig, self.state.heading)
 
         # Movement
-        self.state.x_pos -= int(math.sin(math.radians(self.state.heading)) * self.state.velocity / zoom)
-        self.state.y_pos -= int(math.cos(math.radians(self.state.heading)) * self.state.velocity / zoom)
+        dx = -int(math.sin(math.radians(self.state.heading)) * self.state.velocity / zoom)
+        dy = -int(math.cos(math.radians(self.state.heading)) * self.state.velocity / zoom)
+        # Boundry check, drives scroll
+        top_lim = settings.SCREEN_HEIGHT * 0.1
+        bottom_lim = settings.SCREEN_HEIGHT * 0.9
+        left_lim = settings.SCREEN_WIDTH * 0.1
+        right_lim = settings.SCREEN_WIDTH * 0.9
+        ic(dx)
 
-        # Position
-        self.rect.center = (self.state.x_pos, self.state.y_pos)
+        if dx > 0 and self.rect.centerx >= right_lim: 
+            h_scroll = dx
+            dx = 0
+        if dx < 0 and self.rect.centerx <= left_lim: 
+            h_scroll = dx
+            dx = 0
+            
+
+        self.state.x_pos += dx
+        self.state.y_pos += dy
+
+        
+        
+
+
+        # Position 
+        self.rect.center = (self.state.x_pos + h_scroll, self.state.y_pos + v_scroll)
 
         # Energy recharge
         now = pg.time.get_ticks()
@@ -201,5 +225,4 @@ class Ship(GameObject):
             self.fire()
 
 
-        # Switch surface and rect if zoom level has changed
-            
+        return h_scroll, v_scroll
