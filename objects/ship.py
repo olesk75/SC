@@ -177,7 +177,7 @@ class Ship(GameObject):
         if zoom == 1: self.image_orig = self.image_zoom1
         if zoom == 2: self.image_orig = self.image_zoom2
         if zoom == 3: self.image_orig = self.image_zoom3
-        self.rect_orig = self.image_orig.get_rect()  # TODO: every uipådate????
+        self.rect_orig = self.image_orig.get_rect()  # TODO: every update????
 
         # Rotation
         self.image, self.rect = self._rotatesprite(self.image_orig, self.rect_orig, self.state.heading)
@@ -185,27 +185,25 @@ class Ship(GameObject):
         # Movement
         dx = -int(math.sin(math.radians(self.state.heading)) * self.state.velocity / zoom)
         dy = -int(math.cos(math.radians(self.state.heading)) * self.state.velocity / zoom)
-        # Boundry check, drives scroll
-        top_lim = settings.SCREEN_HEIGHT * 0.1
-        bottom_lim = settings.SCREEN_HEIGHT * 0.9
-        left_lim = settings.SCREEN_WIDTH * 0.1
-        right_lim = settings.SCREEN_WIDTH * 0.9
-        ic(dx)
-
-        if dx > 0 and self.rect.centerx >= right_lim: 
-            h_scroll = dx
-            dx = 0
-        if dx < 0 and self.rect.centerx <= left_lim: 
-            h_scroll = dx
-            dx = 0
-            
 
         self.state.x_pos += dx
         self.state.y_pos += dy
-
         
-        
+        # We show up on the other side if we hit the edges
+        if dx > 0 and self.state.x_pos >= settings.SCREEN_WIDTH: 
+            self.state.x_pos -= settings.SCREEN_WIDTH
+            
+        if dx < 0 and self.state.x_pos <= 0: 
+            self.state.x_pos += settings.SCREEN_WIDTH
+       
+        if dy > 0 and self.state.y_pos >= settings.SCREEN_HEIGHT: 
+            self.state.y_pos -= settings.SCREEN_HEIGHT
+            
+        if dx < 0 and self.state.y_pos <= 0: 
+            self.state.y_pos += settings.SCREEN_HEIGHT
 
+        ic(dx, self.state.x_pos, self.rect.centerx, h_scroll)
+        
 
         # Position 
         self.rect.center = (self.state.x_pos + h_scroll, self.state.y_pos + v_scroll)

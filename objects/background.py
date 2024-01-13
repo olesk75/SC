@@ -4,7 +4,7 @@ from settings import SCREEN_HEIGHT, SCREEN_WIDTH
 import pygame as pg
 from icecream import ic
 import random
-import math
+import settings
 
 
 class Background:
@@ -17,6 +17,10 @@ class Background:
         self.BACKGROUND = pg.image.load(
             "assets/backgrounds/" + self.backgrounds[random.randint(0, 1)]
         ).convert()
+
+        # # TEST ZONE
+        # self.BACKGROUND = pg.Surface([settings.SCREEN_WIDTH,settings.SCREEN_HEIGHT], pg.SRCALPHA, 32)
+
 
     # Set up players and all sprite groups
     def startup(self) -> None:
@@ -39,6 +43,7 @@ class Background:
     ) -> None:
         # placeholder background
         #surface.blit(self.BACKGROUND, (0, 0), area=None, special_flags=0)
+        
 
         p1_text1 = self.font.render(f"{p1}", True, (255, 255, 255))
         p1_text2 = self.font.render(f"{p1_health}", True, (255, 255, 255))

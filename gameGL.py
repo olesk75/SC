@@ -36,6 +36,8 @@ class GameGL:
 
     def __init__(self, states, start_state, FPS) -> None:
         self.done = False
+
+        self.active_effect = 0
         
         # Resolution and screen setup
         current_screen = pg.display.Info()
@@ -85,16 +87,23 @@ class GameGL:
         with open(glsl_folder / "frag_shader.glsl", 'r') as file:
             frag_shader = file.read()
 
+        
+
         ic('Shader compilation start')
         self.program = self.ctx.program(vert_shader, frag_shader)  # compiles GLSL code
+        
+        
+        
         self.render_object = self.ctx.vertex_array(self.program, [(quad_buffer, '2f 2f', 'in_vert', 'in_texcoord')])  # format is 2 floats ('in_verts') and 2 floats ('in_texcoord') for the buffer
         # it's important that the names used for the buffer parts matches the in varaibles in the vertex shader
         ic('Shader compilation end')
+
 
         # Enable blending
         self.ctx.enable(moderngl.BLEND)
         # Set the blending function
         self.ctx.blend_func = (moderngl.SRC_ALPHA, moderngl.ONE_MINUS_SRC_ALPHA)
+        #self.ctx.blend_func = (moderngl.SRC_ALPHA, moderngl.ONE)
 
 
 
@@ -156,6 +165,7 @@ class GameGL:
         self.state.update()  # call the update function in active state
 
     def draw(self) -> None:
+        self.game_surface.fill((0,0,0,255))  # we erase the game_surface so we start with a clean transparent canvas each iteration
         self.state.draw(self.game_surface)  # call the update function in active state (on game_surface, not the screen)
 
         if settings.SHOW_FPS:
@@ -164,16 +174,20 @@ class GameGL:
 
         # -----------------------------------------------------------------------------------------------------------
         frame_tex = self.surf_to_texture(self.game_surface)
-        frame_tex.use(0)  # Set use index 0
-    
+        frame_tex.use(0)  # Set use index
 
-        self.program['bg_tex'] = 1
-
+        
         #The location is the texture unit we want to bind the texture. 
         #This should correspond with the value of the sampler2D uniform 
         # in the shader because samplers read from the texture unit we assign to them
         self.program['u_tex'] = 0  #  Write to tex uniform the value 0, which is how the Sampler2D knows its input
         # texture comes from index 0
+        self.program['u_bg_tex'] = 1
+
+        self.program['u_effect'] = 0
+        self.program['u_time'] = time.time() - self.start_time
+
+
         self.render_object.render(mode=moderngl.TRIANGLE_STRIP)  # Triangle strip used to convert our quad_buffer
         # -----------------------------------------------------------------------------------------------------------
 

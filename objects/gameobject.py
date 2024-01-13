@@ -171,8 +171,8 @@ class EngineTrail(pg.sprite.Sprite):
         if self.ticks >= self.lifespan:
             self.kill()
 
-        self.rect.x += self.pos_x + h_scroll
-        self.rect.y += self.pos_y + v_scroll
+        self.rect.x = self.pos_x + h_scroll
+        self.rect.y = self.pos_y + v_scroll
 
         #alpha = int((1 - (self.ticks / self.lifespan)) * 255)
     
