@@ -39,18 +39,18 @@ class AI:
 
         """
 
-        self.ai.rect.centerx = self.ai.state.x_pos + h_scroll
-        self.ai.rect.centery = self.ai.state.y_pos + v_scroll
+        self.ai.rect.centerx = self.ai.x_pos + h_scroll
+        self.ai.rect.centery = self.ai.y_pos + v_scroll
 
         # If we're either hunting or escaping, we accellerate to max
         # if set(['hunt', 'escape']).issubset(self.strategies):
         if self.state == "hunting":
             # Accelerate to half speed
-            half_speed = self.ai.state.max_velocity / 2
-            if self.ai.state.velocity < half_speed - 1:
+            half_speed = self.ai.max_velocity / 2
+            if self.ai.velocity < half_speed - 1:
                 self.ai.accelleration = 1
 
-            elif self.ai.state.velocity > half_speed + 1:
+            elif self.ai.velocity > half_speed + 1:
                 self.ai.accelleration = -1
             else:
                 self.ai.accelleration = 0
@@ -70,7 +70,7 @@ class AI:
 
         if self.state == "attacking":
             # Full speed ahead!
-            if self.ai.state.velocity < self.ai.state.max_velocity:
+            if self.ai.velocity < self.ai.max_velocity:
                 self.ai.accelleration = 1
             else:
                 self.ai.accelleration = 0
@@ -85,8 +85,8 @@ class AI:
             angle %= 2 * math.pi
             angle = math.degrees(angle)
 
-            # Perfect following: self.state.heading = angle
-            angle_delta = angle - self.ai.state.heading
+            # Perfect following: self.heading = angle
+            angle_delta = angle - self.ai.heading
             if angle_delta < 0:
                 angle_delta += 360
 

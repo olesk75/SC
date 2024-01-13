@@ -42,6 +42,8 @@ class Ready(BaseState):
         self.ship_group.add(ship1)
         self.ship_group.add(ship2)
 
+        self.active_effect = 0
+
     def get_event(self, event) -> None:
         if event.type == pg.QUIT:
             self.quit = True

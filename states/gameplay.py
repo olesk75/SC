@@ -20,6 +20,8 @@ class GamePlay(BaseState):
         self.level.startup(self.current_level)
         self.name = "GAMEPLAY"
         self.next_state = "READY"
+        
+
 
     # Get events from level instance, which in turn gets events from player instance(s)
     def get_event(self, event) -> None:
@@ -31,13 +33,17 @@ class GamePlay(BaseState):
 
     def update(self) -> None:
         self.level.update()
+        if self.level.start_fadeout:
+            self.active_effect = 3  # triggering fader
 
         if self.level.state == "win" and not self.level.explosion:
+            self.active_effect = 0  # disabling effects
             self.done = True
             self.fight_status.win = True
             self.fight_status.p1_wins += 1
             print("WIN")
         if self.level.state == "loss" and not self.level.explosion:
+            self.active_effect = 0  # disabling effects
             self.fight_status.win = False
             self.done = True
             self.fight_status.ai_wins += 1

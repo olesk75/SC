@@ -10,6 +10,7 @@ class BaseState:
         self.next_state = None
         self.persist = {}
         self.font = pg.font.Font(None, 24)
+        self.active_effect = 0  # all states can have active effects (GLSL shader effects)
 
     def get_joysticks(self) -> None:
         self.level_current = 1

@@ -5,6 +5,8 @@ import pygame as pg
 from pathlib import Path
 from icecream import ic
 from dataclasses import dataclass
+import math
+
 
 import settings
 
@@ -36,8 +38,8 @@ class GameGL:
 
     def __init__(self, states, start_state, FPS) -> None:
         self.done = False
-
-        self.active_effect = 0
+        self.previous_effect = 0
+        self.effect_timer = 0
         
         # Resolution and screen setup
         current_screen = pg.display.Info()
@@ -59,6 +61,7 @@ class GameGL:
         FLAGS = pg.OPENGL | pg.DOUBLEBUF  # flags = pg.FULLSCREEN | pg.HWSURFACE | pg.SCALED
         self.screen = pg.display.set_mode((width * scale, height * scale), FLAGS)
         self.game_surface = pg.Surface((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT))
+        self.blank_surface = pg.Surface((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT))
 
         """
         --------------------------------------------------------------------------------
@@ -88,11 +91,8 @@ class GameGL:
             frag_shader = file.read()
 
         
-
         ic('Shader compilation start')
         self.program = self.ctx.program(vert_shader, frag_shader)  # compiles GLSL code
-        
-        
         
         self.render_object = self.ctx.vertex_array(self.program, [(quad_buffer, '2f 2f', 'in_vert', 'in_texcoord')])  # format is 2 floats ('in_verts') and 2 floats ('in_texcoord') for the buffer
         # it's important that the names used for the buffer parts matches the in varaibles in the vertex shader
@@ -103,27 +103,29 @@ class GameGL:
         self.ctx.enable(moderngl.BLEND)
         # Set the blending function
         self.ctx.blend_func = (moderngl.SRC_ALPHA, moderngl.ONE_MINUS_SRC_ALPHA)
-        #self.ctx.blend_func = (moderngl.SRC_ALPHA, moderngl.ONE)
+        
+
+        # Initial values
+        self.program['u_effect'] = 1
+        self.program['u_time'] = time.time() 
 
 
-
-        # TEST ZONE
+        # Image background loaded as completely separate texture (same size as game texture)
         bg_surf = pg.image.load(
-            "assets/backgrounds/Starfields/Starfield 3 - 1024x1024.png").convert()
+            "assets/backgrounds/Starfields/Starfield 3 - 1024x1024.png").convert_alpha()
         self.bg_tex = self.surf_to_texture(bg_surf)
-        self.bg_tex.use(1)
+        self.bg_tex.use(0)
         """
         --------------------------------------------------------------------------------
         """
 
-        self.start_time = time.time()
+        self.start_time = 0
         self.clock = pg.time.Clock()
         self.FPS = FPS
         self.states = states
         self.state_name = start_state
         self.state = self.states[self.state_name]
         self.font = pg.font.Font("freesansbold.ttf", 32)
-        self.game_status = []  # to be passed between states
 
         self.fight_status = FightStatus(p1_ship="martian", ai_ship="plutonian")
 
@@ -164,8 +166,13 @@ class GameGL:
             self.flip_state()
         self.state.update()  # call the update function in active state
 
+        if self.previous_effect != self.state.active_effect:
+            self.previous_effect = self.state.active_effect
+            self.effect_timer = 0
+
     def draw(self) -> None:
-        self.game_surface.fill((0,0,0,255))  # we erase the game_surface so we start with a clean transparent canvas each iteration
+        self.game_surface.fill((0, 0, 0))  # we erase the game_surface so we start with a clean transparent canvas each iteration
+
         self.state.draw(self.game_surface)  # call the update function in active state (on game_surface, not the screen)
 
         if settings.SHOW_FPS:
@@ -173,19 +180,21 @@ class GameGL:
             self.game_surface.blit(fps_text, (10, 100))
 
         # -----------------------------------------------------------------------------------------------------------
+        # We now convery the pygame surface to a GLSL texture
         frame_tex = self.surf_to_texture(self.game_surface)
-        frame_tex.use(0)  # Set use index
+        frame_tex.use(1)  # Set use index
 
-        
+
         #The location is the texture unit we want to bind the texture. 
         #This should correspond with the value of the sampler2D uniform 
         # in the shader because samplers read from the texture unit we assign to them
-        self.program['u_tex'] = 0  #  Write to tex uniform the value 0, which is how the Sampler2D knows its input
-        # texture comes from index 0
-        self.program['u_bg_tex'] = 1
 
-        self.program['u_effect'] = 0
-        self.program['u_time'] = time.time() - self.start_time
+        self.program['u_bg_tex'] = 0  #  Write to tex uniform the value 0, which is how the Sampler2D knows its input
+        self.program['u_tex'] = 1  
+        
+        self.program['u_effect'] = self.state.active_effect
+        self.program['u_time'] = self.effect_timer
+        ic(self.effect_timer)
 
 
         self.render_object.render(mode=moderngl.TRIANGLE_STRIP)  # Triangle strip used to convert our quad_buffer
@@ -195,6 +204,7 @@ class GameGL:
 
         frame_tex.release()  # free up VRAM - required!
 
+        self.effect_timer += 1  # increases 60 per second
         self.clock.tick(self.FPS)
         
 

@@ -14,56 +14,96 @@ in vec2 uvs;  // texture coordinates
 out vec4 f_color;  // this is the final output - the color of the pixel
 
 
-// THIS CODE IS FOR A SHOCKWAVE EFFECT AT vec2 center
-// uniform vec2 center; // Mouse position
-// uniform vec3 shockParams; // 10.0, 0.8, 0.1
-
-
 void main() {
     vec2 st = gl_FragCoord.xy/1000;
     vec3 color;
 
-    vec4 t0;
-    vec4 t1;
-
-
     switch (u_effect) {
         case 0: 
-            // NO effect
-            f_color = vec4(texture(u_tex, uvs).rgb + texture(u_bg_tex, uvs).rgb, 1.0);
+            // NO effect - foreground texture overwrites background texture (default)
+
+            // We check if the foreground surface has a black pixel, in which case we
+            // only show the background, otherwise we show the foreground
+            //f_color = vec4(texture(u_tex, uvs).rgba + texture(u_bg_tex, uvs).rgba);
+
+            if (texture(u_tex, uvs).rgb == vec3(0.0, 0.0, 0.0))  { 
+                f_color = vec4(texture(u_bg_tex, uvs).rgb, 1.0); 
+            } else {
+                f_color = vec4(texture(u_tex, uvs).rgb, 1.0); 
+            }
             
             break;
+        /*
+        Test effect - shows red frame
+        */
         case 1:
             // Test effect - red screen 
             // Check if the pixel is in the bottom-right corner
             if (st.x > 0.1 && st.y < 0.9) {
             // Add a small red square in the top-right corner
             //color = vec3(1.0, 0.0, 0.0);
-            color = texture(u_tex, uvs).rgb + texture(u_bg_tex, uvs).rgb;  // we add a color overlay
+            color = texture(u_tex, uvs).rgb + texture(u_bg_tex, uvs).rgb;  
             } else {
             // Use the texture color for the rest of the screen
-            color = texture(u_tex, uvs + u_time).rgb;
+            //color = texture(u_tex, uvs + u_time).rgb;
+            color = vec3(1.0, 0.0, 0.0);
             }
             f_color = vec4(color, 1.0);     // here the last figure _is_ transparency
             break;
+
+        /*
+        Zoom effect - WIP!
+        */
         case 2:
+            vec2 uv = gl_FragCoord.xy; // / iResolution.xy;  // unsure if this is correct or not
+            float zoom = (0.1 + 0.5 * sin(u_time));  // 0.5 on both
 
-            vec3 shockParams = vec3(10.0, 0.8, 0.1);
-            vec2 center = vec2(0.5, 0.5);
+            vec2 scaleCenter = vec2(0.7);
+            uv = (uv - scaleCenter) * zoom + scaleCenter;
+            
+            vec4 texel = texture(u_tex, uv);
 
-            vec2 texCoord = uvs;
-            float distance = distance(uvs, center);
-            if ( (distance <= (u_time + shockParams.z)) && 
-                (distance >= (u_time - shockParams.z)) ) 
-            {
-                float diff = (distance - u_time); 
-                float powDiff = 1.0 - pow(abs(diff*shockParams.x), 
-                                            shockParams.y); 
-                float diffTime = diff  * powDiff; 
-                vec2 diffUV = normalize(uvs - center); 
-                texCoord = uvs + (diffUV * diffTime);
-            } 
-            f_color = texture(u_bg_tex, texCoord);
+            f_color = texel;
+            break;
+
+        /*
+        Fade to black effect 
+        */
+        case 3:
+            //
+            if (texture(u_tex, uvs).rgb == vec3(0.0, 0.0, 0.0))  { 
+                color = vec3(texture(u_bg_tex, uvs).rgb); 
+            } else {
+                color = vec3(texture(u_tex, uvs).rgb); 
+            }
+
+            if (u_time < 50) {
+                color.rgb = mix(color.rgb, vec3(0.0, 0.0, 0.0), u_time/50);
+            } else {
+                color.rgb = vec3(0.0, 0.0, 0.0);
+            }
+            
+
+            f_color = vec4(color, 1.00);  
+            break;
+
+        /*
+        Fade in from black effect 
+        */
+        case 4:
+            //
+            if (texture(u_tex, uvs).rgb == vec3(0.0, 0.0, 0.0))  { 
+                color = vec3(texture(u_bg_tex, uvs).rgb); 
+            } else {
+                color = vec3(texture(u_tex, uvs).rgb); 
+            }
+
+            color.rgb = mix(color.rgb, vec3(0.0, 0.0, 0.0), 1 - u_time/50);
+
+            f_color = vec4(color, 1.00);  
+            break;
+
+
 }
         
     

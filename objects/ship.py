@@ -7,7 +7,11 @@ from icecream import ic
 import math
 import random
 import settings
+from collections import namedtuple
 
+
+# Create a namedtuple type, Point
+Velocity = namedtuple("Velocity", "x_vel y_vel heading")
 
 class Ship(GameObject):
     """The Ship class inherits from GameObject, and based on ship type, provides custom
@@ -30,7 +34,7 @@ class Ship(GameObject):
         self.last_engine_trail = 0
 
         self.accelleration = 0
-        self.slowing = 10
+        self.velociyy = Velocity(x_vel = 0, y_vel = 0, heading = heading)
         self.turning = 0
 
         self.width = 80  # TODO: into game object
@@ -45,6 +49,7 @@ class Ship(GameObject):
                 self.recharge = 5
                 self.fire_rate = 100  # lower is faster
                 self.max_velocity = 10
+                self.max_energy = 1000
                 self.turn_speed = 5
                 self.image_zoom1 = pg.image.load("assets/ships/martian_1.png").convert_alpha()
                 self.image_zoom1_engines = pg.image.load("assets/ships/martian_1-engines.png").convert_alpha()
@@ -64,6 +69,7 @@ class Ship(GameObject):
                 self.recharge = 10
                 self.fire_rate = 500
                 self.max_velocity = 15
+                self.max_energy = 1000
                 self.turn_speed = 5
                 self.image_zoom1 = pg.image.load("assets/ships/plutonian_1.png").convert_alpha()
                 self.image_zoom1_engines = pg.image.load("assets/ships/plutonian_1-engines.png").convert_alpha()
@@ -104,15 +110,15 @@ class Ship(GameObject):
 
     def fire(self) -> None:
         now = pg.time.get_ticks()
-        if now - self.last_fire > self.state.fire_rate and self.state.energy > 10:  # hardcoded
+        if now - self.last_fire > self.fire_rate and self.energy > 10:  # hardcoded
             self.last_fire = now
             self.fire_sound.play()
-            self.state.energy -= 10  # hardcoded
+            self.energy -= 10  # hardcoded
             # firing primary weapon
             # TODO: placeholder data
             self.firing = True
             p_velocity = 20
-            p_direction = self.state.heading
+            p_direction = self.heading
             p_health = 1000
             p_time = 10
             p_shield = 1000
@@ -121,8 +127,8 @@ class Ship(GameObject):
             p_fire_rate = 0
             p_explode = False
             p = Projectile(
-                self.state.x_pos,
-                self.state.y_pos,
+                self.x_pos,
+                self.y_pos,
                 p_health,
                 p_shield,
                 p_energy,
@@ -143,32 +149,22 @@ class Ship(GameObject):
     def fire_special(self) -> None:
         match self.ship_type:
             case "martian":
-                self.state.x_pos = random.randint(100, SCREEN_WIDTH - 100)
-                self.state.y_pos = random.randint(100, SCREEN_HEIGHT - 100)
+                self.x_pos = random.randint(100, SCREEN_WIDTH - 100)
+                self.y_pos = random.randint(100, SCREEN_HEIGHT - 100)
                 self.special_sound.play()
 
     def update(self, zoom, h_scroll, v_scroll) -> tuple:
         # From accelleration to speed to coordinates
-        if (self.state.velocity < self.max_velocity and self.state.velocity > 0) or (
-            self.state.velocity > self.min_velocity and self.state.velocity <= 0
+        if (self.velocity < self.max_velocity and self.velocity > 0) or (
+            self.velocity > self.min_velocity and self.velocity <= 0
         ):
-            self.state.velocity += self.accelleration
+            self.velocity += self.accelleration
             
         # Add engine trails if we're accellerating
         if self.accelleration > 0 and time.time() - self.last_engine_trail > 0.1:
-            et = EngineTrail(self.state.x_pos + h_scroll, self.state.y_pos + v_scroll, "regular")
+            et = EngineTrail(self.x_pos + h_scroll, self.y_pos + v_scroll, "regular")
             self.engine_trails.add(et)
             self.last_engine_trail = time.time()
-
-        # We make the speed drop off slowly - we have 60 FPS, so this gets run 60 times
-        self.slowing -= 1
-        if self.slowing == 0:
-            self.slowing = 10
-            if self.state.velocity != 0:
-                if self.state.velocity < 0:
-                    self.state.velocity += 1
-                else:
-                    self.state.velocity -= 1
                    
 
         self.spin(self.turning, self.turn_speed)
@@ -180,43 +176,45 @@ class Ship(GameObject):
         self.rect_orig = self.image_orig.get_rect()  # TODO: every update????
 
         # Rotation
-        self.image, self.rect = self._rotatesprite(self.image_orig, self.rect_orig, self.state.heading)
+        self.image, self.rect = self._rotatesprite(self.image_orig, self.rect_orig, self.heading)
+
+        # TODO: rework this to have momentum
 
         # Movement
-        dx = -int(math.sin(math.radians(self.state.heading)) * self.state.velocity / zoom)
-        dy = -int(math.cos(math.radians(self.state.heading)) * self.state.velocity / zoom)
+        dx = -int(math.sin(math.radians(self.heading)) * self.velocity / zoom)
+        dy = -int(math.cos(math.radians(self.heading)) * self.velocity / zoom)
 
-        self.state.x_pos += dx
-        self.state.y_pos += dy
+        self.x_pos += dx
+        self.y_pos += dy
         
         # We show up on the other side if we hit the edges
-        if dx > 0 and self.state.x_pos >= settings.SCREEN_WIDTH: 
-            self.state.x_pos -= settings.SCREEN_WIDTH
+        if dx > 0 and self.x_pos >= settings.SCREEN_WIDTH: 
+            self.x_pos -= settings.SCREEN_WIDTH
             
-        if dx < 0 and self.state.x_pos <= 0: 
-            self.state.x_pos += settings.SCREEN_WIDTH
+        if dx < 0 and self.x_pos <= 0: 
+            self.x_pos += settings.SCREEN_WIDTH
        
-        if dy > 0 and self.state.y_pos >= settings.SCREEN_HEIGHT: 
-            self.state.y_pos -= settings.SCREEN_HEIGHT
+        if dy > 0 and self.y_pos >= settings.SCREEN_HEIGHT: 
+            self.y_pos -= settings.SCREEN_HEIGHT
             
-        if dx < 0 and self.state.y_pos <= 0: 
-            self.state.y_pos += settings.SCREEN_HEIGHT
+        if dy < 0 and self.y_pos <= 0: 
+            self.y_pos += settings.SCREEN_HEIGHT
 
-        ic(dx, self.state.x_pos, self.rect.centerx, h_scroll)
+        #ic(dx, self.x_pos, self.rect.centerx, h_scroll)
         
 
         # Position 
-        self.rect.center = (self.state.x_pos + h_scroll, self.state.y_pos + v_scroll)
+        self.rect.center = (self.x_pos + h_scroll, self.y_pos + v_scroll)
 
         # Energy recharge
         now = pg.time.get_ticks()
         if (
-            now - self.last_energy_tick > 1000 and self.state.energy < self.state.max_energy
+            now - self.last_energy_tick > 1000 and self.energy < self.max_energy
         ):  # hardcoded ignoring max values
             self.last_energy_tick = now
-            self.state.energy += self.recharge
-            if self.state.energy > self.state.max_energy:
-                self.state.energy = self.state.max_energy
+            self.energy += self.recharge
+            if self.energy > self.max_energy:
+                self.energy = self.max_energy
 
         # Self firing
         if self.firing:
