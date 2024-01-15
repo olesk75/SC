@@ -37,6 +37,8 @@ class Ship(GameObject):
         self.velociyy = Velocity(x_vel = 0, y_vel = 0, heading = heading)
         self.turning = 0
 
+        self.teleporting = False  # used only for shiw which can teleport
+
         self.width = 80  # TODO: into game object
         self.height = 80
         self.ships = ["martian", "plutonian"]
@@ -148,10 +150,13 @@ class Ship(GameObject):
 
     def fire_special(self) -> None:
         match self.ship_type:
-            case "martian":
+            case "martian":  # Teleport
                 self.x_pos = random.randint(100, SCREEN_WIDTH - 100)
                 self.y_pos = random.randint(100, SCREEN_HEIGHT - 100)
+                self.teleporting = True
                 self.special_sound.play()
+
+
 
     def update(self, zoom, h_scroll, v_scroll) -> tuple:
         # From accelleration to speed to coordinates

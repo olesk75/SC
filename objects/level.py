@@ -19,6 +19,7 @@ class Level:
         self.explosion = False  # nothing starts out exploding
         self.big_boom_size = 1  # start at 1 to avoid divide by zero
         self.start_fadeout = False
+        self.teleport_triggered = False  # used to track GLSL effects for teleports
 
         self.zoom = 3  # zoom, 1 is closest, 3 furthest out
         self.framecounter = 0  # keeps track of iterations to reduce operations each frame
@@ -130,6 +131,10 @@ class Level:
                 self.explosion_y = self.player.y_pos
                 self.sound_loss.play()
 
+        if self.player.teleporting or self.enemy.teleporting:
+            self.teleport_triggered = True
+            self.player.teleporting = self.enemy.teleporting = False
+
                 
 
     # Draw all sprite groups + background
@@ -179,7 +184,6 @@ class Level:
             # Draw large expanding explosion
             if pg.time.get_ticks() - self.start_time > 500:
                 self.exploder.kill()
-                self.start_fadeout = True
                 if self.big_boom_size < 255:
                     
                     # 6 expanding circles of difference colors - red edges and orange in the middle
@@ -199,6 +203,9 @@ class Level:
                     self.big_boom_size += 5
                 else:
                     self.explosion = False
+            
+            if pg.time.get_ticks() > 1000:  # we start fading at the end
+                self.start_fadeout = True
 
         self.framecounter += 1  # this is the last thing to happen in this module for each new frame
         if self.framecounter == settings.FPS:

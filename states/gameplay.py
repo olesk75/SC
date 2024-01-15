@@ -1,5 +1,6 @@
 from .base import BaseState
 from objects.level import Level
+from time import time, perf_counter
 
 from icecream import ic
 import sys
@@ -10,6 +11,10 @@ import pygame as pg
 
 
 class GamePlay(BaseState):
+    '''
+    GamePlay class is mostly just an abstract class to be subclassed
+    However, it does keep track of triggered GLSL effects and manage their timing
+    '''
     def __init__(self) -> None:
         super().__init__()
 
@@ -20,6 +25,7 @@ class GamePlay(BaseState):
         self.level.startup(self.current_level)
         self.name = "GAMEPLAY"
         self.next_state = "READY"
+        self.effect_timer = 0
         
 
 
@@ -33,21 +39,34 @@ class GamePlay(BaseState):
 
     def update(self) -> None:
         self.level.update()
+        if self.level.teleport_triggered:
+            self.level.teleport_triggered = False  # resetting
+            self.active_effect = 6  # triggering teleport, will be disabled by timer
+            self.effect_timer = perf_counter()
+
+
         if self.level.start_fadeout:
             self.active_effect = 3  # triggering fader
+            self.level.start_fadeout = False
 
         if self.level.state == "win" and not self.level.explosion:
-            self.active_effect = 0  # disabling effects
+            self.active_effect = 0  # disabling effects manually
             self.done = True
             self.fight_status.win = True
             self.fight_status.p1_wins += 1
             print("WIN")
         if self.level.state == "loss" and not self.level.explosion:
-            self.active_effect = 0  # disabling effects
+            self.active_effect = 0  # disabling effects manually
             self.fight_status.win = False
             self.done = True
             self.fight_status.ai_wins += 1
             print("LOSS")
+
+        match self.active_effect:
+            case 6:
+                if perf_counter() - self.effect_timer > 0.1:  # we reset the effect based on time
+                    self.active_effect = 0
+
 
     def draw(self, surface) -> None:
         self.level.draw(surface)

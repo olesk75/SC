@@ -39,7 +39,7 @@ class GameGL:
     def __init__(self, states, start_state, FPS) -> None:
         self.done = False
         self.previous_effect = 0
-        self.effect_timer = 0
+        self.effect_counter = 0
         
         # Resolution and screen setup
         current_screen = pg.display.Info()
@@ -168,7 +168,7 @@ class GameGL:
 
         if self.previous_effect != self.state.active_effect:
             self.previous_effect = self.state.active_effect
-            self.effect_timer = 0
+            self.effect_counter = 0
 
     def draw(self) -> None:
         self.game_surface.fill((0, 0, 0))  # we erase the game_surface so we start with a clean transparent canvas each iteration
@@ -193,8 +193,8 @@ class GameGL:
         self.program['u_tex'] = 1  
         
         self.program['u_effect'] = self.state.active_effect
-        self.program['u_time'] = self.effect_timer
-        ic(self.effect_timer)
+        self.program['u_time'] = self.effect_counter
+        ic(self.effect_counter)
 
 
         self.render_object.render(mode=moderngl.TRIANGLE_STRIP)  # Triangle strip used to convert our quad_buffer
@@ -204,7 +204,7 @@ class GameGL:
 
         frame_tex.release()  # free up VRAM - required!
 
-        self.effect_timer += 1  # increases 60 per second
+        self.effect_counter += 1  # increases 60 per second
         self.clock.tick(self.FPS)
         
 
