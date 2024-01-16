@@ -2,9 +2,16 @@
 
 uniform sampler2D u_tex;  // let's the shader sample value from the texture u_tex
 uniform sampler2D u_bg_tex;
-  
+
+uniform float u_screenHeight;
+uniform float u_screenWidth;
+
+uniform float u_effect_x;
+uniform float u_effect_y;
+
+
 uniform int u_effect;   // which effect, if any, are we running?
-uniform float u_time; // who long into the current effect are we? 
+uniform float u_time; // who long into the current effect are we?
 
 // uniform inputs are the same for every instance
 // in inputs depends on the instance (effectively different each pixel)
@@ -12,9 +19,20 @@ uniform float u_time; // who long into the current effect are we?
 in vec2 uvs;  // texture coordinates
 out vec4 f_color;  // this is the final output - the color of the pixel
 
+vec3 prandom3( vec2 co )
+{
+	vec3 a = fract( cos( co.x*8.3e-3 + co.y )*vec3(1.3e5, 4.7e5, 2.9e5) );
+	vec3 b = fract( sin( co.x*0.3e-3 + co.y )*vec3(8.1e5, 1.0e5, 0.1e5) );
+	vec3 c = mix(a, b, 0.5);
+	return c;
+}
+
+
 
 void main() {
-    vec2 st = gl_FragCoord.xy/1000;
+    // This is our current x and y pixel coordinate
+    vec2 st = vec2(gl_FragCoord.x/u_screenWidth, gl_FragCoord.y/u_screenHeight);
+    vec2 effect_center = vec2(u_effect_x/u_screenWidth, u_effect_y/u_screenHeight);
     vec3 color;
 
     switch (u_effect) {
@@ -100,8 +118,8 @@ void main() {
         Swipe from left to right between two textures
         */
         case 5:
-            vec4 t0 = texture2D(u_bg_tex, uvs);
-            vec4 t1 = texture2D(u_tex, uvs);
+            vec4 t0 = texture(u_bg_tex, uvs);
+            vec4 t1 = texture(u_tex, uvs);
             f_color = mix(t0, t1, step(u_time * 0.5, uvs.x));  // the multiplier for time needs to be tested
             break;
         /*
@@ -117,12 +135,42 @@ void main() {
             }
               
             break;
+        /*
+        Starfield of random stars - something is odd, possibly with the resolution 
+        */
+        case 7:
+            vec2 resolution = vec2(1024, 1024);
+            vec2 p = gl_FragCoord.xy / resolution.xy + u_time / 20.0;
+            vec2 seed = p * 1.8;	
+            
+            seed = floor(seed * resolution);
+            vec3 rnd = prandom3(seed);
+            f_color = vec4(pow(rnd.y,40.0));
+            break;
 
-}
-        
-    
-                                    
-    
+        /*
+        Shockwave effect, needs effect coordinates
+        */
+        case 8:
+        //uniform vec3 shockParams; // 10.0, 0.8, 0.1
+        vec3 shockParams = vec3(100.0, 0.8, 0.1); // hardcoded for now
+        float time = u_time / 100;
+
+        vec2 texCoord = uvs;
+        float distance = distance(uvs, effect_center);
+        if ( (distance <= (time + shockParams.z)) && 
+            (distance >= (time - shockParams.z)) ) 
+        {
+            float diff = (distance - time); 
+            float powDiff = 1.0 - pow(abs(diff*shockParams.x), 
+                                        shockParams.y); 
+            float diffTime = diff  * powDiff; 
+            vec2 diffUV = normalize(uvs - effect_center); 
+            texCoord = uvs + (diffUV * diffTime);
+        } 
+        f_color = texture(u_bg_tex, texCoord);
+        break;
+    }                         
 }
 
 

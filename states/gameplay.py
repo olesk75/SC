@@ -41,7 +41,7 @@ class GamePlay(BaseState):
         self.level.update()
         if self.level.teleport_triggered:
             self.level.teleport_triggered = False  # resetting
-            self.active_effect = 6  # triggering teleport, will be disabled by timer
+            self.active_effect = 8  # triggering teleport, will be disabled by timer
             self.effect_timer = perf_counter()
 
 
