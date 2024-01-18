@@ -126,11 +126,10 @@ class GameGL:
         self.program["u_time"] = time.time()
         self.program["u_screenWidth"] = settings.SCREEN_WIDTH
         self.program["u_screenHeight"] = settings.SCREEN_HEIGHT
-        self.program["u_effect_x"] = 600  # TODO: placeholders
-        self.program["u_effect_y"] = 600
 
         # Image background loaded as completely separate texture (same size as game texture)
-        bg_surf = pg.image.load("assets/backgrounds/Starfields/Starfield 3 - 1024x1024.png").convert_alpha()
+        #bg_surf = pg.image.load("assets/backgrounds/Starfields/Starfield 3 - 1024x1024.png").convert_alpha()
+        bg_surf = pg.image.load("assets/backgrounds/Blue Nebula/Blue Nebula 8 - 1024x1024.png").convert_alpha()
         self.bg_tex = self.surf_to_texture(bg_surf)
         self.bg_tex.use(0)
         """
@@ -217,8 +216,12 @@ class GameGL:
         self.program["u_tex"] = 1
 
         self.program["u_effect"] = self.state.active_effect
+        self.program["u_effect_x"], self.program["u_effect_y"] = self.state.effect_coords
+
         self.program["u_time"] = self.effect_counter
         ic(self.effect_counter)
+
+
 
         self.render_object.render(mode=moderngl.TRIANGLE_STRIP)  # Triangle strip used to convert our quad_buffer
         # -----------------------------------------------------------------------------------------------------------

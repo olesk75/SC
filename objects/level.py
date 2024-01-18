@@ -20,6 +20,7 @@ class Level:
         self.big_boom_size = 1  # start at 1 to avoid divide by zero
         self.start_fadeout = False
         self.teleport_triggered = False  # used to track GLSL effects for teleports
+        self.teleport_coords: tuple
 
         self.zoom = 3  # zoom, 1 is closest, 3 furthest out
         self.framecounter = 0  # keeps track of iterations to reduce operations each frame
@@ -133,6 +134,10 @@ class Level:
 
         if self.player.teleporting or self.enemy.teleporting:
             self.teleport_triggered = True
+            if self.player.teleporting:
+                self.teleport_coords = self.player.teleport_coords
+            else: 
+                self.teleport_coords = self.enemy.teleport_coords
             self.player.teleporting = self.enemy.teleporting = False
 
                 

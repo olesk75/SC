@@ -27,6 +27,7 @@ class GamePlay(BaseState):
         self.next_state = "READY"
         self.effect_timer = 0
         
+        
 
 
     # Get events from level instance, which in turn gets events from player instance(s)
@@ -41,9 +42,9 @@ class GamePlay(BaseState):
         self.level.update()
         if self.level.teleport_triggered:
             self.level.teleport_triggered = False  # resetting
+            self.effect_coords = self.level.teleport_coords
             self.active_effect = 8  # triggering teleport, will be disabled by timer
             self.effect_timer = perf_counter()
-
 
         if self.level.start_fadeout:
             self.active_effect = 3  # triggering fader
@@ -62,8 +63,9 @@ class GamePlay(BaseState):
             self.fight_status.ai_wins += 1
             print("LOSS")
 
+        # Timeouts for effects
         match self.active_effect:
-            case 6:
+            case 8:  # teleport
                 if perf_counter() - self.effect_timer > 0.1:  # we reset the effect based on time
                     self.active_effect = 0
 

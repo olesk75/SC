@@ -46,6 +46,9 @@ void main() {
             } else {
                 f_color = vec4(texture(u_tex, uvs).rgb, 1.0); 
             } 
+
+            
+            // f_color *= 1. - 0.5 * pow(length(uvs), 3.);  // vignette effect
             break;
         /*
         Test effect - shows red frame
@@ -118,6 +121,7 @@ void main() {
         Swipe from left to right between two textures
         */
         case 5:
+            // TODO:  the first texture must be foreground + background, and the second texture something else
             vec4 t0 = texture(u_bg_tex, uvs);
             vec4 t1 = texture(u_tex, uvs);
             f_color = mix(t0, t1, step(u_time * 0.5, uvs.x));  // the multiplier for time needs to be tested
@@ -152,9 +156,10 @@ void main() {
         Shockwave effect, needs effect coordinates
         */
         case 8:
-        //uniform vec3 shockParams; // 10.0, 0.8, 0.1
-        vec3 shockParams = vec3(100.0, 0.8, 0.1); // hardcoded for now
-        float time = u_time / 100;
+        //uniform vec3 shockParams; // 10.0, 0.8, 0.1  // original 
+        //vec3 shockParams = vec3(1.0, 0.4, 0.03); // very subtle
+        vec3 shockParams = vec3(1.0, 0.4, 0.03); // hardcoded for now
+        float time = u_time / 50;
 
         vec2 texCoord = uvs;
         float distance = distance(uvs, effect_center);
@@ -162,13 +167,20 @@ void main() {
             (distance >= (time - shockParams.z)) ) 
         {
             float diff = (distance - time); 
-            float powDiff = 1.0 - pow(abs(diff*shockParams.x), 
+            float powDiff = 0.1 - pow(abs(diff*shockParams.x), 
                                         shockParams.y); 
             float diffTime = diff  * powDiff; 
             vec2 diffUV = normalize(uvs - effect_center); 
             texCoord = uvs + (diffUV * diffTime);
         } 
-        f_color = texture(u_bg_tex, texCoord);
+
+
+        // We apply the distortion both foreground and backgroudn textures
+        if (texture(u_tex, uvs).rgb == vec3(0.0, 0.0, 0.0))  { 
+                f_color = vec4(texture(u_bg_tex, texCoord).rgb, 1.0); 
+            } else {
+                f_color = vec4(texture(u_tex, texCoord).rgb, 1.0); 
+            } 
         break;
     }                         
 }

@@ -38,6 +38,7 @@ class Ship(GameObject):
         self.turning = 0
 
         self.teleporting = False  # used only for shiw which can teleport
+        self.teleport_coords = (False, False)
 
         self.width = 80  # TODO: into game object
         self.height = 80
@@ -154,6 +155,7 @@ class Ship(GameObject):
                 self.x_pos = random.randint(100, SCREEN_WIDTH - 100)
                 self.y_pos = random.randint(100, SCREEN_HEIGHT - 100)
                 self.teleporting = True
+                self.teleport_coords = (self.x_pos, self.y_pos)
                 self.special_sound.play()
 
 
