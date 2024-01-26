@@ -50,26 +50,18 @@ vec3 hsv2rgb(vec3 c)
 
 
 void main() {
-    // This is our current x and y pixel coordinate
-    vec2 st = vec2(gl_FragCoord.x/u_screenWidth, gl_FragCoord.y/u_screenHeight);
+    vec2 st = vec2(gl_FragCoord.x/u_screenWidth, gl_FragCoord.y/u_screenHeight);  // This is our current x and y pixel coordinate
     vec2 effect_center = vec2(u_effect_x/u_screenWidth, u_effect_y/u_screenHeight);
     vec3 color;
 
     switch (u_effect) {
+        /*
+        Default: no effect, only foreground layered on top of background according to foreground transparency
+        */
         case 0: 
-            // NO effect - foreground texture overwrites background texture (default)
-
-            // We check if the foreground surface has a black pixel, in which case we
-            // only show the background, otherwise we show the foreground
-            if (texture(u_tex, uvs).rgb == vec3(0.0, 0.0, 0.0))  { 
-                f_color = vec4(texture(u_bg_tex, uvs).rgb, 1.0); 
-            } else {
-                f_color = vec4(texture(u_tex, uvs).rgb, 1.0); 
-            } 
-
-            
-            // f_color *= 1. - 0.5 * pow(length(uvs), 3.);  // vignette effect
+            f_color = mix(texture(u_bg_tex, uvs), texture(u_tex, uvs), texture(u_tex, uvs).a);
             break;
+
         /*
         Test effect - shows red frame
         */
@@ -105,11 +97,7 @@ void main() {
         Fade to black effect 
         */
         case 3:
-            if (texture(u_tex, uvs).rgb == vec3(0.0, 0.0, 0.0))  { 
-                color = vec3(texture(u_bg_tex, uvs).rgb); 
-            } else {
-                color = vec3(texture(u_tex, uvs).rgb); 
-            }
+            color = mix(texture(u_bg_tex, uvs).rgb, texture(u_tex, uvs).rgb, texture(u_tex, uvs).a);  // blended textures
 
             if (u_time < 50) {
                 color.rgb = mix(color.rgb, vec3(0.0, 0.0, 0.0), u_time/50);
@@ -123,11 +111,7 @@ void main() {
         Fade in from black effect 
         */
         case 4:
-            if (texture(u_tex, uvs).rgb == vec3(0.0, 0.0, 0.0))  { 
-                color = vec3(texture(u_bg_tex, uvs).rgb); 
-            } else {
-                color = vec3(texture(u_tex, uvs).rgb); 
-            }
+            color = mix(texture(u_bg_tex, uvs).rgb, texture(u_tex, uvs).rgb, texture(u_tex, uvs).a);  // blended textures
 
             if (u_time < 50) {
                 color.rgb = mix(color.rgb, vec3(0.0, 0.0, 0.0), 1.0 - u_time/50);
@@ -138,7 +122,7 @@ void main() {
             break;
         
         /*
-        Swipe from left to right between two textures
+        WIP: Swipe from left to right between two textures
         */
         case 5:
             // TODO:  the first texture must be foreground + background, and the second texture something else
@@ -151,20 +135,14 @@ void main() {
         */
         case 6:
             vec2 sample_pos = vec2(uvs.x + sin(uvs.y * 10 + u_time * 1.00) * 0.01, uvs.y);
-            //f_color = vec4(texture(tex, sample_pos).rg, texture(tex, sample_pos).b * 1.5, 1.0);
-            if (texture(u_tex, uvs).rgb == vec3(0.0, 0.0, 0.0))  { 
-                f_color = vec4(texture(u_bg_tex, sample_pos).rgb, 1.0); 
-            } else {
-                f_color = vec4(texture(u_tex, sample_pos).rgb, 1.0); 
-            }
-              
+            f_color = mix(texture(u_bg_tex, sample_pos), texture(u_tex, sample_pos), texture(u_tex, sample_pos).a);  // blended textures
             break;
         /*
         Starfield of random stars - something is odd, possibly with the resolution 
         */
         case 7:
             vec2 resolution = vec2(1024, 1024);
-            vec2 p = gl_FragCoord.xy / resolution.xy + u_time / 20.0;
+            vec2 p = st.xy / resolution.xy + u_time / 20.0;
             vec2 seed = p * 1.8;	
             
             seed = floor(seed * resolution);

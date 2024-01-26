@@ -60,8 +60,8 @@ class GameGL:
 
         FLAGS = pg.OPENGL | pg.DOUBLEBUF  # flags = pg.FULLSCREEN | pg.HWSURFACE | pg.SCALED
         self.screen = pg.display.set_mode((width * scale, height * scale), FLAGS)
-        self.game_surface = pg.Surface((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT))
-        self.blank_surface = pg.Surface((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT))
+        self.game_surface = pg.Surface((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT), pg.SRCALPHA)
+        self.blank_surface = pg.Surface((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT), pg.SRCALPHA)
 
         """
         --------------------------------------------------------------------------------
@@ -155,14 +155,11 @@ class GameGL:
             moderngl.LINEAR,
             moderngl.LINEAR,
         )  # how to convert pixels (NEAREST gives more of a pixel-art feel)
+
         tex.swizzle = "BGRA"  # The swizzle mask change/reorder the vec4 value returned by the texture() function in a GLSL shaders
         # This is done to convert between pygame and OpenGL color formats
 
-        # We first set up an OpenGL texture with ctx.texture(), we then set the filter function, reordered the channels
-        # and now we write an array version of our pygame surface to this OpenGl texture and return it
-        tex.write(
-            surf.get_view("1")
-        )  # pygame: '1' returns a (surface-width * surface-height) array of continuous pixels
+        tex.write(surf.get_view("1"))  # pygame: '1' returns a (surface-width * surface-height) array of continuous pixels
         return tex
 
     def event_loop(self) -> None:
@@ -191,20 +188,15 @@ class GameGL:
             self.effect_counter = 0
 
     def draw(self) -> None:
-        self.game_surface.fill(
-            (0, 0, 0)
-        )  # we erase the game_surface so we start with a clean transparent canvas each iteration
+        self.game_surface.fill((0, 0, 0, 0))  # we erase the game_surface so we start with a clean transparent canvas each iteration
 
-        self.state.draw(
-            self.game_surface
-        )  # call the update function in active state (on game_surface, not the screen)
+        self.state.draw(self.game_surface)  # call the update function in active state (on game_surface, not the screen)
 
         if settings.SHOW_FPS:
             fps_text = self.font.render(f"FPS: {self.clock.get_fps():.2f}", True, (255, 255, 0))
             self.game_surface.blit(fps_text, (10, 100))
 
         # -----------------------------------------------------------------------------------------------------------
-        # We now convery the pygame surface to a GLSL texture
         frame_tex = self.surf_to_texture(self.game_surface)
         frame_tex.use(1)  # Set use index
 
@@ -222,6 +214,8 @@ class GameGL:
         #ic(self.effect_counter)
 
 
+         # Enable blending for transparency
+        self.ctx.enable(moderngl.BLEND)
 
         self.render_object.render(mode=moderngl.TRIANGLE_STRIP)  # Triangle strip used to convert our quad_buffer
         # -----------------------------------------------------------------------------------------------------------

@@ -66,12 +66,9 @@ class Ready(BaseState):
         pg.draw.rect(surface, pg.Color("white"), pg.Rect(x1_pos, y_pos, height, width))
         pg.draw.rect(surface, pg.Color("white"), pg.Rect(x2_pos - width, y_pos, height, width))
 
-        pg.draw.rect(surface, pg.Color("black"), pg.Rect(x1_pos + 10, y_pos + 10, height - 20, width - 20))
-        pg.draw.rect(
-            surface,
-            pg.Color("black"),
-            pg.Rect(x2_pos + 10 - width, y_pos + 10, height - 20, width - 20),
-        )
+        # Semi-transparent black backgrounds for the ships
+        pg.draw.rect(surface, (0,0,0,128), pg.Rect(x1_pos + 10, y_pos + 10, height - 20, width - 20))
+        pg.draw.rect(surface, (0,0,0,128), pg.Rect(x2_pos + 10 - width, y_pos + 10, height - 20, width - 20))
 
         self.ship_group.update(zoom=1, h_scroll=0, v_scroll=0)
         self.ship_group.draw(surface)
@@ -79,8 +76,7 @@ class Ready(BaseState):
     def draw(self, surface) -> None:
         middle = int(SCREEN_WIDTH / 2)
 
-        surface.fill(pg.Color("black"))
-
+        surface.fill((0,0,0,0))  # reset surface with full alpha
         self.draw_ships(surface)
 
         p1_lead = 0
@@ -91,18 +87,23 @@ class Ready(BaseState):
         elif self.fight_status.p1_wins < self.fight_status.ai_wins:
             ai_lead = self.fight_status.ai_wins - self.fight_status.p1_wins
 
+        # Preparing surfaces for blitting
+            
+        # Print You win/lose!
         if self.fight_status.win:
             t_result = self.font_very_large.render(f"YOU WIN!", True, pg.Color("white"))
         else:
-            t_result = self.font_very_large.render(f"YOU LOOSE!", True, pg.Color("white"))
+            t_result = self.font_very_large.render(f"YOU LOSE!", True, pg.Color("white"))
 
         t_result_x = int(SCREEN_WIDTH / 2) - int(t_result.get_width() / 2)
         t_result_y = int(SCREEN_HEIGHT * 0.1)
 
+        # Print Ready to go again?
         t_top = self.font.render(f"Ready to go again?", True, pg.Color("white"))
         t_top_x = int(SCREEN_WIDTH / 2) - int(t_top.get_width() / 2)
         t_top_y = int(SCREEN_HEIGHT * 0.3)
 
+        # Print win/loss status
         t_wins = self.font.render(
             f"WINS:          {self.fight_status.p1_wins}                    {self.fight_status.ai_wins}",
             True,
@@ -111,6 +112,7 @@ class Ready(BaseState):
         t_wins_x = int(SCREEN_WIDTH / 2) - int(t_wins.get_width() / 2 + SCREEN_WIDTH * 0.12)
         t_wins_y = int(SCREEN_HEIGHT * 0.6)
 
+        # Print leader
         t_lead = self.font.render(
             f"LEAD:          {p1_lead}                    {ai_lead}",
             True,
@@ -119,6 +121,7 @@ class Ready(BaseState):
         t_lead_x = int(SCREEN_WIDTH / 2) - int(t_wins.get_width() / 2 + SCREEN_WIDTH * 0.124)
         t_lead_y = int(SCREEN_HEIGHT * 0.65)
 
+        # Print explainer
         t_explainer = self.font.render(f"FIRST TO 10 WINS OR LEADING BY 3 WINS!", True, pg.Color("white"))
         t_explainer_x = middle - int(t_explainer.get_width()) / 2
         t_explainer_y = int(SCREEN_HEIGHT * 0.8)
@@ -127,6 +130,7 @@ class Ready(BaseState):
         if self.gray_tone >= 255 - self.color_change or self.gray_tone + self.color_change <= 0:
             self.color_change *= -1
 
+        # Print Continue?
         t_continue = self.font_small.render(
             f"PRESS SPACE TO CONTINUE OR ESC TO EXIT",
             True,

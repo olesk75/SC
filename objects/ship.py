@@ -29,6 +29,7 @@ class Ship(GameObject):
         self.vel_y = 0
 
         self.firing = False
+        self.dead = False
         self.last_fire = 0
         self.last_energy_tick = 0
         self.last_engine_trail = 0
@@ -160,14 +161,14 @@ class Ship(GameObject):
 
 
     def update(self, zoom, h_scroll, v_scroll) -> tuple:
-        if self.accelleration > 0:  # the ship is accelerating in the direciton of its heading
-
+        if self.accelleration > 0 and not self.dead:  # the ship is accelerating in the direciton of its heading
+            # The accelleration happens in the direction of the self.heading 
             x_accel = -math.sin(math.radians(self.heading)) * self.accelleration
             y_accel = -math.cos(math.radians(self.heading)) * self.accelleration
 
-            if abs(self.vel_x + x_accel) < self.max_velocity:
+            # We only allow accelleration which leads to a total speed of self.max_velocity or less
+            if math.sqrt((self.vel_x + x_accel)**2 + (self.vel_y + y_accel)**2) <= self.max_velocity:
                 self.vel_x += x_accel
-            if abs(self.vel_y + y_accel) < self.max_velocity:
                 self.vel_y += y_accel
                 
         # Add engine trails if we're accellerating
@@ -177,7 +178,8 @@ class Ship(GameObject):
             self.last_engine_trail = time.time()
                    
 
-        self.spin(self.turning, self.turn_speed)
+        if not self.dead:
+            self.spin(self.turning, self.turn_speed)
 
         # Zoom level
         if zoom == 1: self.image_orig = self.image_zoom1
@@ -196,7 +198,6 @@ class Ship(GameObject):
 
         self.x_pos += dx
         self.y_pos += dy
-        ic(dx, self.x_pos)
         
         # We show up on the other side if we hit the edges
         if dx > 0 and self.x_pos >= settings.SCREEN_WIDTH: 
@@ -228,7 +229,7 @@ class Ship(GameObject):
                 self.energy = self.max_energy
 
         # Self firing
-        if self.firing:
+        if self.firing and not self.dead:
             self.fire()
 
 

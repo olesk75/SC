@@ -66,6 +66,7 @@ class AI:
             if dx + dy < 1:  
                 self._change_state("attacking")
 
+
         # TODO: define distance limits
 
         if self.state == "attacking":

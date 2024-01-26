@@ -38,7 +38,7 @@ class Menu(BaseState):
                 self.handle_action()
 
     def draw(self, surface) -> None:
-        surface.fill(pg.Color("black"))
+        surface.fill((0,0,0,0))
         for index, option in enumerate(self.options):
             text_render = self.render_text(index)
             surface.blit(text_render, self.get_text_position(text_render, index, surface))

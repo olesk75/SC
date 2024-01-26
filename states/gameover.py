@@ -46,8 +46,6 @@ class GameOver(BaseState):
                 self.active_index = 0
 
     def draw(self, surface) -> None:
-        # surface.fill(pg.Color("black"))
-
         win_text = self.font.render(f"You WIN!", True, (255, 255, 255))
         surface.blit(win_text, ((int(SCREEN_WIDTH / 2) - 30, 100)))
 

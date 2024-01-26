@@ -21,5 +21,5 @@ class Splash(BaseState):
 
     def draw(self, surface) -> None:
         self.title_rect = self.title.get_rect(center=surface.get_rect().center)
-        surface.fill(pg.Color("black"))
+        surface.fill((0,0,0,0))
         surface.blit(self.title, self.title_rect)

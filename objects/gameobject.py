@@ -3,7 +3,6 @@ from icecream import ic
 import pygame as pg
 import math
 
-
 class GameObject(pg.sprite.Sprite, ABC):
     """Metaclass for all game objects, like enemies, player, bullets, powerups etc.
 
@@ -99,9 +98,9 @@ class EngineTrail(pg.sprite.Sprite):
         self.type = type
         if type == "regular":
             self.lifespan = 30
-            width = height = 5
+            width = height = 3
 
-        self.image = pg.Surface([width, height])
+        self.image = pg.Surface([width, height], pg.SRCALPHA)
         self.image.fill("#ffcc00")
 
         # Update the position of this object by setting the values of rect.x and rect.y
@@ -118,14 +117,7 @@ class EngineTrail(pg.sprite.Sprite):
 
         self.rect.x = self.pos_x + h_scroll  # type: ignore
         self.rect.y = self.pos_y + v_scroll  # type: ignore
-
-        #alpha = int((1 - (self.ticks / self.lifespan)) * 255)
-    
-        #self.color.g -= self.ticks
-        #self.image.fill(self.color)
-        #self.image.set_alpha(alpha)
-
-
+        self.image.set_alpha(255 - self.ticks*10)  
 
 class Projectile(GameObject):
     def __init__(
@@ -200,3 +192,25 @@ class Projectile(GameObject):
 
         # Position
         self.rect.center = (self.x_pos + h_scroll, self.y_pos + v_scroll)  # type: ignore
+
+
+class Planet(pg.sprite.Sprite):
+    def __init__(self, planet_type, x, y) -> None:
+        super().__init__()
+        if planet_type == 1 or planet_type == 2 or planet_type == 3:
+            self.image_zoom1 = pg.image.load("assets/planets/planet1large.png").convert_alpha()
+            self.image_zoom2 = pg.image.load("assets/planets/planet1med.png").convert_alpha()
+            self.image_zoom3 = pg.image.load("assets/planets/planet1small.png").convert_alpha()
+            self.image = self.image_zoom3  # TODO: placeholder
+
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+
+        self.gravity = 10  # placeholder value
+        self.influence_radius = self.rect.width * 2
+
+
+
+
+
+

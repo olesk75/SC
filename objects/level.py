@@ -1,5 +1,6 @@
 from objects.players import Player, EnemyAI
 from objects.gameinfo import GameInfo
+from objects.gameobject import Planet
 from settings import SCREEN_HEIGHT, SCREEN_WIDTH
 
 import pygame as pg
@@ -53,8 +54,6 @@ class Level:
         )
 
 
-
-
         ic("Instancing new level", number)
         self.number = number
 
@@ -65,6 +64,17 @@ class Level:
         # EnemyAI sprite group
         self.enemy_ai_sprites = pg.sprite.GroupSingle()
         self.enemy_ai_sprites.add(self.enemy)
+
+        # Planets and start and black holes etc.
+        self.celestial_sprites = pg.sprite.Group()
+
+        # Randomizing locations and objects:
+        self.celestials = []
+        for celest in range(1, random.randint(1,3)):
+            planet = Planet(celest, random.randint(int(settings.SCREEN_WIDTH * 0.1),int(settings.SCREEN_WIDTH * 0.9)), 
+                            random.randint(int(settings.SCREEN_HEIGHT * 0.1), int(settings.SCREEN_HEIGHT * 0.9)))
+            self.celestials.append(planet)
+            self.celestial_sprites.add(planet)
 
         # Win and loss sounds
         self.sound_win = pg.mixer.Sound("assets/sounds/win_1.wav")
@@ -80,6 +90,7 @@ class Level:
 
     # Update all objects
     def update(self) -> None:
+        ic(self.zoom)
        
         # Setting the camera position to be directly between the players
         #(self.h_scroll, self.v_scroll) = self._get_midpoint()
@@ -101,10 +112,15 @@ class Level:
 
         # Check collisions
         if self.state == 'run':
+            # Celestial collision for projectiles just removes them
+            for celestial in self.celestials:
+                pg.sprite.spritecollide(celestial, self.player.projectiles, True)
+                pg.sprite.spritecollide(celestial, self.enemy.projectiles, True)
+
             # Enemy collision
-            gets_hit = pg.sprite.spritecollide(self.enemy, self.player.projectiles, True)
-            for projectile_hit in gets_hit:
-                projectile_hit.kill()
+            gets_hit = pg.sprite.spritecollide(self.enemy, self.player.projectiles, True) + pg.sprite.spritecollide(self.enemy, self.celestial_sprites, False)
+            if gets_hit:
+                self.enemy.dead = True
 
                 self.state = "win"
                 pg.mixer.stop()
@@ -118,9 +134,9 @@ class Level:
                 self.sound_win.play()
 
             # Player collision
-            gets_hit = pg.sprite.spritecollide(self.player, self.enemy.projectiles, True)
-            for projectile_hit in gets_hit:
-                projectile_hit.kill()
+            gets_hit = pg.sprite.spritecollide(self.player, self.enemy.projectiles, True) + pg.sprite.spritecollide(self.player, self.celestial_sprites, False)
+            if gets_hit:
+                self.player.dead = True
 
                 self.state = "loss"
                 pg.mixer.stop()
@@ -157,6 +173,11 @@ class Level:
             self.enemy.health,
             self.enemy.energy,
         )
+
+        '''
+        Draw celestial objects
+        '''
+        self.celestial_sprites.draw(surface)
 
         '''
         Draw all player-related sprites
