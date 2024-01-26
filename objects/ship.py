@@ -10,9 +10,6 @@ import settings
 from collections import namedtuple
 
 
-# Create a namedtuple type, Point
-Velocity = namedtuple("Velocity", "x_vel y_vel heading")
-
 class Ship(GameObject):
     """The Ship class inherits from GameObject, and based on ship type, provides custom
     attributes for each type of ship
@@ -28,13 +25,15 @@ class Ship(GameObject):
         self.max_velocity = 10  # TODO: read from ship config
         self.min_velocity = -5  # TODO: read from ship config
 
+        self.vel_x = 0  # We start with zero volicty in either direction
+        self.vel_y = 0
+
         self.firing = False
         self.last_fire = 0
         self.last_energy_tick = 0
         self.last_engine_trail = 0
 
         self.accelleration = 0
-        self.velociyy = Velocity(x_vel = 0, y_vel = 0, heading = heading)
         self.turning = 0
 
         self.teleporting = False  # used only for shiw which can teleport
@@ -161,12 +160,16 @@ class Ship(GameObject):
 
 
     def update(self, zoom, h_scroll, v_scroll) -> tuple:
-        # From accelleration to speed to coordinates
-        if (self.velocity < self.max_velocity and self.velocity > 0) or (
-            self.velocity > self.min_velocity and self.velocity <= 0
-        ):
-            self.velocity += self.accelleration
-            
+        if self.accelleration > 0:  # the ship is accelerating in the direciton of its heading
+
+            x_accel = -math.sin(math.radians(self.heading)) * self.accelleration
+            y_accel = -math.cos(math.radians(self.heading)) * self.accelleration
+
+            if abs(self.vel_x + x_accel) < self.max_velocity:
+                self.vel_x += x_accel
+            if abs(self.vel_y + y_accel) < self.max_velocity:
+                self.vel_y += y_accel
+                
         # Add engine trails if we're accellerating
         if self.accelleration > 0 and time.time() - self.last_engine_trail > 0.1:
             et = EngineTrail(self.x_pos + h_scroll, self.y_pos + v_scroll, "regular")
@@ -188,11 +191,12 @@ class Ship(GameObject):
         # TODO: rework this to have momentum
 
         # Movement
-        dx = -int(math.sin(math.radians(self.heading)) * self.velocity / zoom)
-        dy = -int(math.cos(math.radians(self.heading)) * self.velocity / zoom)
+        dx = self.vel_x / zoom
+        dy = self.vel_y / zoom
 
         self.x_pos += dx
         self.y_pos += dy
+        ic(dx, self.x_pos)
         
         # We show up on the other side if we hit the edges
         if dx > 0 and self.x_pos >= settings.SCREEN_WIDTH: 

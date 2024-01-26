@@ -219,7 +219,7 @@ class GameGL:
         self.program["u_effect_x"], self.program["u_effect_y"] = self.state.effect_coords
 
         self.program["u_time"] = self.effect_counter
-        ic(self.effect_counter)
+        #ic(self.effect_counter)
 
 
 
