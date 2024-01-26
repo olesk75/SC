@@ -189,6 +189,7 @@ class Ship(GameObject):
 
         # Rotation
         self.image, self.rect = self._rotatesprite(self.image_orig, self.rect_orig, self.heading)
+        self.mask = pg.mask.from_surface(self.image)
 
         # TODO: rework this to have momentum
 

@@ -101,7 +101,8 @@ class AI:
 
             else:
                 # We got the player in our sights and we attack with main weapon
-                self.ai.fire()
+                pass
+                #self.ai.fire()  # TODO: placeholder
 
             if angle_delta > 90:  # AI lost sight of player
                 self.state = "hunting"

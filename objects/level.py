@@ -70,7 +70,7 @@ class Level:
 
         # Randomizing locations and objects:
         self.celestials = []
-        for celest in range(1, random.randint(1,3)):
+        for celest in range(0, random.randint(1,3)):
             planet = Planet(celest, random.randint(int(settings.SCREEN_WIDTH * 0.1),int(settings.SCREEN_WIDTH * 0.9)), 
                             random.randint(int(settings.SCREEN_HEIGHT * 0.1), int(settings.SCREEN_HEIGHT * 0.9)))
             self.celestials.append(planet)
@@ -90,7 +90,7 @@ class Level:
 
     # Update all objects
     def update(self) -> None:
-        ic(self.zoom)
+        #ic(self.zoom)
        
         # Setting the camera position to be directly between the players
         #(self.h_scroll, self.v_scroll) = self._get_midpoint()
@@ -108,18 +108,42 @@ class Level:
         self.enemy.engine_trails.update(self.zoom, self.h_scroll, self.v_scroll)
 
         self.enemy.ai.update(self.player, self.zoom, self.h_scroll, self.v_scroll)
-        # Update obstacles
+
+        # Update effect of celestial objects
+        for celestial in self.celestials:  # for each planet
+            for ship in [self.player, self.enemy]:  # for each shpt
+                # Check if we're in range
+                if math.sqrt((ship.rect.centerx - celestial.rect.centerx)**2 + (ship.rect.centery - celestial.rect.centery)**2) < celestial.influence_radius:
+                    # Distance between ship and celestial:        
+                    dx = ship.rect.centerx - celestial.rect.centerx
+                    dy = ship.rect.centery - celestial.rect.centery
+                    ship.vel_x -= int(dx * celestial.gravity)
+                    ship.vel_y -= int(dy * celestial.gravity)
+     
+
 
         # Check collisions
         if self.state == 'run':
-            # Celestial collision for projectiles just removes them
+            enemy_hit = False
+            player_hit = False
+
+            # Celestial collision - we use masks for precision
             for celestial in self.celestials:
-                pg.sprite.spritecollide(celestial, self.player.projectiles, True)
-                pg.sprite.spritecollide(celestial, self.enemy.projectiles, True)
+                pg.sprite.spritecollide(celestial, self.player.projectiles, True, pg.sprite.collide_mask)
+                pg.sprite.spritecollide(celestial, self.enemy.projectiles, True, pg.sprite.collide_mask)
+                if pg.sprite.spritecollide(celestial, self.enemy_ai_sprites, False, pg.sprite.collide_mask):
+                    enemy_hit = True
+                if pg.sprite.spritecollide(celestial, self.player_sprites, False, pg.sprite.collide_mask):
+                    player_hit = True
+
+            # Ship and projectile collisions
+            if pg.sprite.spritecollide(self.enemy, self.player.projectiles, False, pg.sprite.collide_mask):
+                enemy_hit = True
+            if pg.sprite.spritecollide(self.player, self.enemy.projectiles, False, pg.sprite.collide_mask):
+                player_hit = True    
 
             # Enemy collision
-            gets_hit = pg.sprite.spritecollide(self.enemy, self.player.projectiles, True) + pg.sprite.spritecollide(self.enemy, self.celestial_sprites, False)
-            if gets_hit:
+            if enemy_hit:
                 self.enemy.dead = True
 
                 self.state = "win"
@@ -134,8 +158,7 @@ class Level:
                 self.sound_win.play()
 
             # Player collision
-            gets_hit = pg.sprite.spritecollide(self.player, self.enemy.projectiles, True) + pg.sprite.spritecollide(self.player, self.celestial_sprites, False)
-            if gets_hit:
+            if player_hit:
                 self.player.dead = True
 
                 self.state = "loss"

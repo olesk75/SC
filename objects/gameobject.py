@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any
 from icecream import ic
 import pygame as pg
 import math
@@ -162,6 +163,8 @@ class Projectile(GameObject):
         # We set rotation
         self.image, self.rect = self._rotatesprite(self.image, self.rect, heading)
 
+        self.mask = pg.mask.from_surface(self.image)
+
         # Every projectile is different
         if self.type == "placeholder":
             self.expiry_time = 60  # 60 tics * 3 = 3 seconds
@@ -197,7 +200,8 @@ class Projectile(GameObject):
 class Planet(pg.sprite.Sprite):
     def __init__(self, planet_type, x, y) -> None:
         super().__init__()
-        if planet_type == 1 or planet_type == 2 or planet_type == 3:
+        self.image: pg.Surface
+        if planet_type == 0 or planet_type == 1 or planet_type == 2:
             self.image_zoom1 = pg.image.load("assets/planets/planet1large.png").convert_alpha()
             self.image_zoom2 = pg.image.load("assets/planets/planet1med.png").convert_alpha()
             self.image_zoom3 = pg.image.load("assets/planets/planet1small.png").convert_alpha()
@@ -206,9 +210,19 @@ class Planet(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
 
-        self.gravity = 10  # placeholder value
-        self.influence_radius = self.rect.width * 2
 
+        # CONVERT TO MASK https://www.pygame.org/docs/ref/mask.html
+        mask = pg.mask.from_surface(self.image)
+        (x, y) = mask.get_size()
+        self.mask = mask.scale((x * 0.9, y * 0.9))  # scales to 80% to account for corners on ships
+
+        self.gravity = 0.014
+        self.influence_radius = self.rect.width * 3
+
+
+    def update(self, zoom) -> None:
+        zoom = zoom
+        pass
 
 
 
