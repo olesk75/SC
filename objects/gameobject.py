@@ -109,15 +109,15 @@ class EngineTrail(pg.sprite.Sprite):
         self.rect.x = self.pos_x
         self.rect.y = self.pos_y
 
-    def update(self, zoom, h_scroll, v_scroll) -> None:
+    def update(self,) -> None:
         self.image: pg.Surface
         self.ticks += 1
 
         if self.ticks >= self.lifespan:
             self.kill()
 
-        self.rect.x = self.pos_x + h_scroll  # type: ignore
-        self.rect.y = self.pos_y + v_scroll  # type: ignore
+        self.rect.x = self.pos_x 
+        self.rect.y = self.pos_y
         self.image.set_alpha(255 - self.ticks * 10)
 
 
@@ -178,7 +178,7 @@ class Projectile(GameObject):
     def trigger_shield(self) -> None:
         return super().trigger_shield()
 
-    def update(self, zoom, h_scroll, v_scroll) -> None:
+    def update(self) -> None:
         self.ticks += 1
 
         # If we're too old we die or explode
@@ -195,7 +195,7 @@ class Projectile(GameObject):
         self.y_pos -= int(math.cos(math.radians(self.heading)) * self.velocity)
 
         # Position
-        self.rect.center = (self.x_pos + h_scroll, self.y_pos + v_scroll)  # type: ignore
+        self.rect.center = (self.x_pos, self.y_pos)  # type: ignore
 
 
 class Planet(pg.sprite.Sprite):
@@ -203,10 +203,7 @@ class Planet(pg.sprite.Sprite):
         super().__init__()
         self.image: pg.Surface
         if planet_type == 0 or planet_type == 1 or planet_type == 2:
-            self.image_zoom1 = pg.image.load("assets/planets/planet1large.png").convert_alpha()
-            self.image_zoom2 = pg.image.load("assets/planets/planet1med.png").convert_alpha()
-            self.image_zoom3 = pg.image.load("assets/planets/planet1small.png").convert_alpha()
-            self.image = self.image_zoom3  # TODO: placeholder
+            self.image = pg.image.load("assets/planets/planet1small.png").convert_alpha()
 
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
@@ -215,12 +212,11 @@ class Planet(pg.sprite.Sprite):
         (x, y) = mask.get_size()
         self.mask = mask.scale((x * 0.9, y * 0.9))  # scales to 80% to account for corners on ships
 
-        self.gravity = 0.009
+        self.gravity = 1000
         self.influence_radius = self.rect.width * 5
 
 
-    def update(self, zoom) -> None:
-        zoom = zoom
+    def update(self, ) -> None:
         pass
 
 

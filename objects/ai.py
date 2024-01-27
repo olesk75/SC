@@ -11,7 +11,7 @@ class AI:
         self.state_change_triggered = False
         self.trigger_time: float
 
-        self.state = "hunting"  # ai starts hunting
+        self.state = "NADA"  # ai starts hunting
 
     def _change_state(self, new_state) -> None:
         # We flip the switch if this is the first request to change state
@@ -22,7 +22,7 @@ class AI:
         elif time.time() - self.trigger_time > 1 - self.skill:
             self.state = new_state
 
-    def update(self, player, zoom, h_scroll, v_scroll) -> None:
+    def update(self, player) -> None:
         """
         Basic enemy AI, simulating inputs
 
@@ -38,8 +38,8 @@ class AI:
 
         """
 
-        self.ai.rect.centerx = self.ai.x_pos + h_scroll
-        self.ai.rect.centery = self.ai.y_pos + v_scroll
+        self.ai.rect.centerx = self.ai.x_pos
+        self.ai.rect.centery = self.ai.y_pos
 
         # If we're either hunting or escaping, we accellerate to max
         # if set(['hunt', 'escape']).issubset(self.strategies):

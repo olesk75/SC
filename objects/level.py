@@ -26,10 +26,9 @@ class Level:
         self.teleport_coords: tuple
 
         self.zoom = 3  # zoom, 1 is closest, 3 furthest out
+        self.zoom_x = 0  # zoom coordinates
+        self.zoom_y = 0
         self.framecounter = 0  # keeps track of iterations to reduce operations each frame
-
-        self.h_scroll = 0  # tracks camera position, which is added to all objects in the game
-        self.v_scroll = 0  # updates when the center of the midpoint touches edges of square in the center of the screen
 
     def _get_distance(self) -> int:
         return int(math.sqrt((self.player.rect.centerx - self.enemy.rect.centerx)**2 + (self.player.rect.centery - self.enemy.rect.centery)**2))  # type: ignore
@@ -90,38 +89,64 @@ class Level:
 
     # Update all objects
     def update(self) -> None:
-       
-        #ic(self.zoom)
-       
-        # Setting the camera position to be directly between the players
-        #(self.h_scroll, self.v_scroll) = self._get_midpoint()
+        # Determine zoom level
+        # 1 - fully zoomed in 
+        # 2 - medium zoom
+        # 3 - fully zoomed out
+        distance = math.sqrt((self.player.rect.centerx - self.enemy.rect.centerx)**2 + (self.player.rect.centery - self.enemy.rect.centery)**2)  
 
-        self.h_scroll, self.v_scroll = self.player.update(self.zoom, self.h_scroll, self.v_scroll)
+        if distance > 300:
+            if self.zoom != 3:
+                self.zoom = 3
+                self.zoom_x = (self.player.rect.centerx + self.enemy.rect.centerx) / 2
+                self.zoom_y = (self.player.rect.centery + self.enemy.rect.centery) / 2
+
+        elif distance > 100:
+            if self.zoom != 2:
+                self.zoom = 2
+                self.zoom_x = (self.player.rect.centerx + self.enemy.rect.centerx) / 2
+                self.zoom_y = (self.player.rect.centery + self.enemy.rect.centery) / 2
+        else:
+            if self.zoom != 1:
+                self.zoom = 1
+                self.zoom_x = (self.player.rect.centerx + self.enemy.rect.centerx) / 2
+                self.zoom_y = (self.player.rect.centery + self.enemy.rect.centery) / 2
+
+        self.player.update()
 
         # Updates the players's projectile sprites
-        self.player.projectiles.update(self.zoom, self.h_scroll, self.v_scroll)
-        self.player.engine_trails.update(self.zoom, self.h_scroll, self.v_scroll)
+        self.player.projectiles.update()
+        self.player.engine_trails.update()
 
         # Update enemies and their projectiles
-        self.enemy.update(self.zoom, self.h_scroll, self.v_scroll)
+        self.enemy.update()
 
-        self.enemy.projectiles.update(self.zoom, self.h_scroll, self.v_scroll)
-        self.enemy.engine_trails.update(self.zoom, self.h_scroll, self.v_scroll)
+        self.enemy.projectiles.update()
+        self.enemy.engine_trails.update()
 
-        self.enemy.ai.update(self.player, self.zoom, self.h_scroll, self.v_scroll)
+        self.enemy.ai.update(self.player)
 
         # Update effect of celestial objects
         for celestial in self.celestials:  # for each planet
-            for ship in [self.player, self.enemy]:  # for each shpt
-                # Check if we're in range
-                if math.sqrt((ship.rect.centerx - celestial.rect.centerx)**2 + (ship.rect.centery - celestial.rect.centery)**2) < celestial.influence_radius:
-                    # Distance between ship and celestial:        
-                    dx = ship.rect.centerx - celestial.rect.centerx
-                    dy = ship.rect.centery - celestial.rect.centery
-                    ship.vel_x -= int(dx * celestial.gravity)
-                    ship.vel_y -= int(dy * celestial.gravity)
-     
+            for ship in [self.player, self.enemy]:  # for each ship
+                if not ship.dead:
+                    # Check if we're in range
+                    distance = math.sqrt((ship.rect.centerx - celestial.rect.centerx)**2 + (ship.rect.centery - celestial.rect.centery)**2)
+                    if  distance < celestial.influence_radius:
+                        # Distance between ship and celestial:
+                        acceleration = celestial.gravity / (distance ** 2)
 
+                        angle_radians = math.atan2(ship.rect.centery - celestial.rect.centery, ship.rect.centerx - celestial.rect.centerx)
+
+                        dx = math.cos(angle_radians) * acceleration
+                        dy = math.sin(angle_radians) * acceleration
+
+                        # print(f'accel: {acceleration:.2f}, dx: {dx:.2f}, dy: {dy:.2f}')  # for debugging
+
+                        # Impact of gravity is the gravitationaly force divided by the square of the distance
+                        ship.vel_x -= dx
+                        ship.vel_y -= dy
+  
 
         # Check collisions
         if self.state == 'run':
@@ -134,8 +159,10 @@ class Level:
                 pg.sprite.spritecollide(celestial, self.enemy.projectiles, True, pg.sprite.collide_mask)  # type: ignore
                 if pg.sprite.spritecollide(celestial, self.enemy_ai_sprites, False, pg.sprite.collide_mask):  # type: ignore
                     enemy_hit = True
+                    self.enemy.vel_x = self.enemy.vel_y = 0  # if we hit a planet, we stop
                 if pg.sprite.spritecollide(celestial, self.player_sprites, False, pg.sprite.collide_mask):  # type: ignore
                     player_hit = True
+                    self.player.vel_x = self.player.vel_y = 0  # if we hit a planet, we stop
 
             # Ship and projectile collisions
             if pg.sprite.spritecollide(self.enemy, self.player.projectiles, False, pg.sprite.collide_mask):  # type: ignore
@@ -183,7 +210,7 @@ class Level:
     # Draw all sprite groups + background
     def draw(self, surface) -> None:
         # DEBUG SECTION
-        message = ic(self.player.vel_x, self.player.vel_y, self.player.accelleration)
+        message = f'vel_x: {self.player.vel_x:.2f}, vel_y: {self.player.vel_y:.2f}, accel: {self.player.accelleration:.2f}'
         debug(message, x=20, y=20, surface=surface, color="#ffff00")
 
 
@@ -223,8 +250,8 @@ class Level:
         Draw explosion
         '''
         if self.explosion:
-            x = self.explosion_x + random.randint(-30, 30) + self.h_scroll
-            y = self.explosion_y + random.randint(-30, 30) + self.v_scroll
+            x = self.explosion_x + random.randint(-30, 30)
+            y = self.explosion_y + random.randint(-30, 30)
             radius = random.randint(5, 25)
             red_green = random.randint(128, 255)
             color = pg.Color(red_green, 255 - red_green, 0, random.randint(0, 255))
@@ -250,7 +277,7 @@ class Level:
                             case 3:
                                 color = pg.Color(255, 255, 0)
 
-                        pg.draw.circle(surface, color, (self.explosion_x + self.h_scroll, self.explosion_y + self.v_scroll), radius=radius + n * 2, width=3)
+                        pg.draw.circle(surface, color, (self.explosion_x, self.explosion_y), radius=radius + n * 2, width=3)
 
                     self.big_boom_size += 5
                 else:

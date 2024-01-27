@@ -35,10 +35,14 @@ class GamePlay(BaseState):
 
     def update(self) -> None:
         self.level.update()
+        self.zoom = self.level.zoom
+        self.zoom_x = self.level.zoom_x
+        self.zoom_y = self.level.zoom_y
         if self.level.teleport_triggered:
             self.level.teleport_triggered = False  # resetting
             self.effect_coords = self.level.teleport_coords
             self.active_effect = 8  # triggering teleport, will be disabled by timer
+
             self.effect_timer = perf_counter()
 
         if self.level.start_fadeout:

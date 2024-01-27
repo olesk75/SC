@@ -230,6 +230,11 @@ class GameGL:
         self.program["u_effect_x"], self.program["u_effect_y"] = self.state.effect_coords
 
         self.program["u_time"] = self.effect_counter
+        
+        self.program["u_zoom_lvl"] = float(self.state.zoom)
+        self.program["u_zoom_x"] = self.state.zoom_x
+        self.program["u_zoom_y"] = self.state.zoom_y
+
         # ic(self.effect_counter)
 
         # Enable blending for transparency

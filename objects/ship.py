@@ -52,12 +52,8 @@ class Ship(GameObject):
                 self.max_velocity = 10
                 self.max_energy = 1000
                 self.turn_speed = 5
-                self.image_zoom1 = pg.image.load("assets/ships/martian_1.png").convert_alpha()
-                self.image_zoom1_engines = pg.image.load("assets/ships/martian_1-engines.png").convert_alpha()
-                self.image_zoom2 = pg.image.load("assets/ships/martian_2.png").convert_alpha()
-                self.image_zoom2_engines = pg.image.load("assets/ships/martian_2-engines.png").convert_alpha()
-                self.image_zoom3 = pg.image.load("assets/ships/martian_3.png").convert_alpha()
-                self.image_zoom3_engines = pg.image.load("assets/ships/martian_3-engines.png").convert_alpha()
+                self.image_ship = pg.image.load("assets/ships/martian_3.png").convert_alpha()
+                self.image_engines = pg.image.load("assets/ships/martian_3-engines.png").convert_alpha()
                 self.special = "teleport"
                 self.fire_sound = pg.mixer.Sound("assets/sounds/shot_5.wav")
                 self.fire_sound.set_volume(0.9)
@@ -72,12 +68,8 @@ class Ship(GameObject):
                 self.max_velocity = 15
                 self.max_energy = 1000
                 self.turn_speed = 5
-                self.image_zoom1 = pg.image.load("assets/ships/plutonian_1.png").convert_alpha()
-                self.image_zoom1_engines = pg.image.load("assets/ships/plutonian_1-engines.png").convert_alpha()
-                self.image_zoom2 = pg.image.load("assets/ships/plutonian_2.png").convert_alpha()
-                self.image_zoom2_engines = pg.image.load("assets/ships/plutonian_2-engines.png").convert_alpha()
-                self.image_zoom3 = pg.image.load("assets/ships/plutonian_3.png").convert_alpha()
-                self.image_zoom3_engines = pg.image.load("assets/ships/plutonian_3-engines.png").convert_alpha()
+                self.image_ship = pg.image.load("assets/ships/plutonian_3.png").convert_alpha()
+                self.image_engines = pg.image.load("assets/ships/plutonian_3-engines.png").convert_alpha()
                 self.special = "shield"
                 self.fire_sound = pg.mixer.Sound("assets/sounds/fire_2.wav")
                 self.fire_sound.set_volume(0.9)
@@ -85,8 +77,6 @@ class Ship(GameObject):
                 self.special_sound.set_volume(0.5)
             case _:
                 raise ValueError(f"{ship_type} is not an allowed ship type")
-
-        
 
         super().__init__(
             x_pos,
@@ -101,8 +91,7 @@ class Ship(GameObject):
             heading,
             self.max_velocity,
         )
-
-        self.image = self.image_zoom1  # we start with lowest zoom level
+        self.image = self.image_ship
         self.rect = self.image.get_rect()
 
         # We need these for roations etc.
@@ -160,7 +149,18 @@ class Ship(GameObject):
 
 
 
-    def update(self, zoom, h_scroll, v_scroll) -> tuple:
+    def update(self) -> None:
+        # Inertia and space friction(!)
+        inertia = abs(self.vel_x) * 0.01  # 10% speed reduction per tick
+        sign = (self.vel_x > 0) - (self.vel_x < 0)
+        self.vel_x = sign * (abs(self.vel_x) - inertia)
+
+        inertia = abs(self.vel_y) * 0.01  # 10% speed reduction per tick
+        sign = (self.vel_y > 0) - (self.vel_y < 0)
+        self.vel_y = sign * (abs(self.vel_y) - inertia)
+
+        
+        # Accellerating the ship
         if self.accelleration > 0 and not self.dead:  # the ship is accelerating in the direciton of its heading
             # The accelleration happens in the direction of the self.heading
             x_accel = y_accel = 0
@@ -184,7 +184,7 @@ class Ship(GameObject):
                 
         # Add engine trails if we're accellerating
         if self.accelleration > 0 and time.time() - self.last_engine_trail > 0.1:
-            et = EngineTrail(self.x_pos + h_scroll, self.y_pos + v_scroll, "regular")
+            et = EngineTrail(self.x_pos, self.y_pos, "regular")
             self.engine_trails.add(et)
             self.last_engine_trail = time.time()
                    
@@ -192,10 +192,7 @@ class Ship(GameObject):
         if not self.dead:
             self.spin(self.turning, self.turn_speed)
 
-        # Zoom level
-        if zoom == 1: self.image_orig = self.image_zoom1
-        if zoom == 2: self.image_orig = self.image_zoom2
-        if zoom == 3: self.image_orig = self.image_zoom3
+        self.image_orig = self.image
         self.rect_orig = self.image_orig.get_rect()  # TODO: every update????
 
         # Rotation
@@ -205,30 +202,27 @@ class Ship(GameObject):
         # TODO: rework this to have momentum
 
         # Movement
-        dx = self.vel_x / zoom
-        dy = self.vel_y / zoom
-
-        self.x_pos += dx
-        self.y_pos += dy
+        self.x_pos += self.vel_x
+        self.y_pos += self.vel_y
         
         # We show up on the other side if we hit the edges
-        if dx > 0 and self.x_pos >= settings.SCREEN_WIDTH: 
+        if self.vel_x > 0 and self.x_pos >= settings.SCREEN_WIDTH: 
             self.x_pos -= settings.SCREEN_WIDTH
             
-        if dx < 0 and self.x_pos <= 0: 
+        if self.vel_x < 0 and self.x_pos <= 0: 
             self.x_pos += settings.SCREEN_WIDTH
        
-        if dy > 0 and self.y_pos >= settings.SCREEN_HEIGHT: 
+        if self.vel_y > 0 and self.y_pos >= settings.SCREEN_HEIGHT: 
             self.y_pos -= settings.SCREEN_HEIGHT
             
-        if dy < 0 and self.y_pos <= 0: 
+        if self.vel_y < 0 and self.y_pos <= 0: 
             self.y_pos += settings.SCREEN_HEIGHT
 
-        #ic(dx, self.x_pos, self.rect.centerx, h_scroll)
+        #ic(dx, self.x_pos, self.rect.centerx)
         
 
         # Position 
-        self.rect.center = (self.x_pos + h_scroll, self.y_pos + v_scroll)
+        self.rect.center = (self.x_pos, self.y_pos)
 
         # Energy recharge
         now = pg.time.get_ticks()
@@ -244,5 +238,3 @@ class Ship(GameObject):
         if self.firing and not self.dead:
             self.fire()
 
-
-        return h_scroll, v_scroll

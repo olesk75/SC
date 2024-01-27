@@ -12,6 +12,9 @@ class BaseState:
         self.font = pg.font.Font(None, 24)
         self.active_effect = 0  # all states can have active effects (GLSL shader effects)
         self.effect_coords = (0,0)
+        self.zoom = 3  # default
+        self.zoom_x = 0  # zoom coords, used for zoom lvl 1 and 2
+        self.zoom_y = 0
 
     def get_joysticks(self) -> None:
         self.level_current = 1
