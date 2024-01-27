@@ -1,6 +1,5 @@
 import time
 import math
-from icecream import ic
 import random
 
 

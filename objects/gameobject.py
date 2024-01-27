@@ -1,8 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Any
-from icecream import ic
 import pygame as pg
 import math
+
 
 class GameObject(pg.sprite.Sprite, ABC):
     """Metaclass for all game objects, like enemies, player, bullets, powerups etc.
@@ -56,7 +55,7 @@ class GameObject(pg.sprite.Sprite, ABC):
     def trigger_shield(self) -> None:
         pass
 
-    def _rotatesprite(self, image:pg.Surface, rect:pg.Rect, angle) -> tuple[pg.Surface, pg.Rect]:
+    def _rotatesprite(self, image: pg.Surface, rect: pg.Rect, angle) -> tuple[pg.Surface, pg.Rect]:
         """rotate an image while keeping its center"""
         rot_image = pg.transform.rotate(image, angle)
         rot_rect = rot_image.get_rect(center=rect.center)
@@ -94,7 +93,7 @@ class EngineTrail(pg.sprite.Sprite):
         self.lifespan = 30
         self.ticks = 0
 
-        self.color = pg.Color(255,255,0)  # we start yellow
+        self.color = pg.Color(255, 255, 0)  # we start yellow
 
         self.type = type
         if type == "regular":
@@ -111,6 +110,7 @@ class EngineTrail(pg.sprite.Sprite):
         self.rect.y = self.pos_y
 
     def update(self, zoom, h_scroll, v_scroll) -> None:
+        self.image: pg.Surface
         self.ticks += 1
 
         if self.ticks >= self.lifespan:
@@ -118,7 +118,8 @@ class EngineTrail(pg.sprite.Sprite):
 
         self.rect.x = self.pos_x + h_scroll  # type: ignore
         self.rect.y = self.pos_y + v_scroll  # type: ignore
-        self.image.set_alpha(255 - self.ticks*10)  
+        self.image.set_alpha(255 - self.ticks * 10)
+
 
 class Projectile(GameObject):
     def __init__(
@@ -130,6 +131,7 @@ class Projectile(GameObject):
         energy: int,
         recharge: int,
         fire_rate: int,
+        explode: bool,
         direction: int,
         velocity: int,
         heading: int,
@@ -151,7 +153,7 @@ class Projectile(GameObject):
         )
 
         self.expiry_time = expiry_time
-        self.explode: bool
+        self.explode = explode
         self.explosion_size: int
 
         self.ticks = 0
@@ -168,7 +170,6 @@ class Projectile(GameObject):
         # Every projectile is different
         if self.type == "placeholder":
             self.expiry_time = 60  # 60 tics * 3 = 3 seconds
-            self.explode = True
             self.explosion_size = 50
 
     def fire(self, primary: bool) -> None:
@@ -210,14 +211,12 @@ class Planet(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = (x, y)
 
-
-        # CONVERT TO MASK https://www.pygame.org/docs/ref/mask.html
         mask = pg.mask.from_surface(self.image)
         (x, y) = mask.get_size()
         self.mask = mask.scale((x * 0.9, y * 0.9))  # scales to 80% to account for corners on ships
 
-        self.gravity = 0.014
-        self.influence_radius = self.rect.width * 3
+        self.gravity = 0.009
+        self.influence_radius = self.rect.width * 5
 
 
     def update(self, zoom) -> None:

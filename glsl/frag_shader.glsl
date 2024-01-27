@@ -131,7 +131,7 @@ void main() {
             f_color = mix(t0, t1, step(u_time * 0.5, uvs.x));  // the multiplier for time needs to be tested
             break;
         /*
-        Short wobble, used for teleports
+        Full-screen wobble
         */
         case 6:
             vec2 sample_pos = vec2(uvs.x + sin(uvs.y * 10 + u_time * 1.00) * 0.01, uvs.y);
@@ -151,12 +151,12 @@ void main() {
             break;
 
         /*
-        Shockwave effect, needs effect coordinates
+        Shockwave effect, needs effect coordinates - used for teleport
         */
         case 8:
         //uniform vec3 shockParams; // 10.0, 0.8, 0.1  // original 
         //vec3 shockParams = vec3(1.0, 0.4, 0.03); // very subtle
-        vec3 shockParams = vec3(1.0, 0.4, 0.03); // hardcoded for now
+        vec3 shockParams = vec3(3.0, 0.4, 0.03); // hardcoded for now
         float time = u_time / 50;
 
         vec2 texCoord = uvs;
@@ -172,13 +172,9 @@ void main() {
             texCoord = uvs + (diffUV * diffTime);
         } 
 
-
         // We apply the distortion both foreground and background textures
-        if (texture(u_tex, uvs).rgb == vec3(0.0, 0.0, 0.0))  { 
-                f_color = vec4(texture(u_bg_tex, texCoord).rgb, 1.0); 
-            } else {
-                f_color = vec4(texture(u_tex, texCoord).rgb, 1.0); 
-            } 
+        f_color = mix(texture(u_bg_tex, texCoord), texture(u_tex, texCoord), texture(u_tex, texCoord).a);
+        
         break;
     }                         
 }

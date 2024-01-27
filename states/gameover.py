@@ -18,6 +18,7 @@ class GameOver(BaseState):
         return self.font.render(self.options[index], True, color)
 
     def get_text_position(self, text, index):
+        self.screen_rect: pg.Rect
         center = (self.screen_rect.center[0], self.screen_rect.center[1] + (index * 50))
         return text.get_rect(center=center)
 

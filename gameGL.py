@@ -54,14 +54,21 @@ class GameGL:
         # Tons of stuff to prevent Macs from freaking out
         pg.display.gl_set_attribute(pg.GL_CONTEXT_MAJOR_VERSION, 3)
         pg.display.gl_set_attribute(pg.GL_CONTEXT_MINOR_VERSION, 3)
-        pg.display.gl_set_attribute(pg.GL_CONTEXT_PROFILE_MASK, pg.GL_CONTEXT_PROFILE_CORE)
-        pg.display.gl_set_attribute(pg.GL_CONTEXT_FORWARD_COMPATIBLE_FLAG, True)
-        os.environ["SDL_VIDEO_WINDOW_POS"] = "%d,%d" % (10, 10)  # We place scaled window top left
+        pg.display.gl_set_attribute(
+            pg.GL_CONTEXT_PROFILE_MASK, pg.GL_CONTEXT_PROFILE_CORE)
+        pg.display.gl_set_attribute(
+            pg.GL_CONTEXT_FORWARD_COMPATIBLE_FLAG, True)
+        os.environ["SDL_VIDEO_WINDOW_POS"] = "%d,%d" % (
+            10, 10)  # We place scaled window top left
 
-        FLAGS = pg.OPENGL | pg.DOUBLEBUF  # flags = pg.FULLSCREEN | pg.HWSURFACE | pg.SCALED
-        self.screen = pg.display.set_mode((width * scale, height * scale), FLAGS)
-        self.game_surface = pg.Surface((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT), pg.SRCALPHA)
-        self.blank_surface = pg.Surface((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT), pg.SRCALPHA)
+        # flags = pg.FULLSCREEN | pg.HWSURFACE | pg.SCALED
+        FLAGS = pg.OPENGL | pg.DOUBLEBUF
+        self.screen = pg.display.set_mode(
+            (width * scale, height * scale), FLAGS)
+        self.game_surface = pg.Surface(
+            (settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT), pg.SRCALPHA)
+        self.blank_surface = pg.Surface(
+            (settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT), pg.SRCALPHA)
 
         """
         --------------------------------------------------------------------------------
@@ -81,7 +88,8 @@ class GameGL:
                     -1.0,
                     1.0,
                     0.0,
-                    0.0,  # top left vertex coords (-1.0, 1.0) and top left uv coords (0.0.)
+                    # top left vertex coords (-1.0, 1.0) and top left uv coords (0.0.)
+                    0.0,
                     1.0,
                     1.0,
                     1.0,
@@ -108,18 +116,21 @@ class GameGL:
             frag_shader = file.read()
 
         ic("Shader compilation start")
-        self.program = self.ctx.program(vert_shader, frag_shader)  # compiles GLSL code
+        self.program = self.ctx.program(
+            vert_shader, frag_shader)  # compiles GLSL code
 
         self.render_object = self.ctx.vertex_array(
             self.program, [(quad_buffer, "2f 2f", "in_vert", "in_texcoord")]
-        )  # format is 2 floats ('in_verts') and 2 floats ('in_texcoord') for the buffer
+            # format is 2 floats ('in_verts') and 2 floats ('in_texcoord') for the buffer
+        )
         # it's important that the names used for the buffer parts matches the in varaibles in the vertex shader
         ic("Shader compilation end")
 
         # Enable blending
         self.ctx.enable(moderngl.BLEND)
         # Set the blending function
-        self.ctx.blend_func = (moderngl.SRC_ALPHA, moderngl.ONE_MINUS_SRC_ALPHA)
+        self.ctx.blend_func = (
+            moderngl.SRC_ALPHA, moderngl.ONE_MINUS_SRC_ALPHA)
 
         # Initial values
         self.program["u_effect"] = 1
@@ -128,8 +139,9 @@ class GameGL:
         self.program["u_screenHeight"] = settings.SCREEN_HEIGHT
 
         # Image background loaded as completely separate texture (same size as game texture)
-        #bg_surf = pg.image.load("assets/backgrounds/Starfields/Starfield 3 - 1024x1024.png").convert_alpha()
-        bg_surf = pg.image.load("assets/backgrounds/Blue Nebula/Blue Nebula 8 - 1024x1024.png").convert_alpha()
+        # bg_surf = pg.image.load("assets/backgrounds/Starfields/Starfield 3 - 1024x1024.png").convert_alpha()
+        bg_surf = pg.image.load(
+            "assets/backgrounds/Blue Nebula/Blue Nebula 8 - 1024x1024.png").convert_alpha()
         self.bg_tex = self.surf_to_texture(bg_surf)
         self.bg_tex.use(0)
         """
@@ -150,16 +162,19 @@ class GameGL:
         """
         Converts pygame texture to OpenGL texture and returns it
         """
-        tex = self.ctx.texture(surf.get_size(), 4)  # RGBA (4 component) f1 texture, as dype="f4" by default
+        tex = self.ctx.texture(
+            surf.get_size(), 4)  # RGBA (4 component) f1 texture, as dype="f4" by default
         tex.filter = (
             moderngl.LINEAR,
             moderngl.LINEAR,
         )  # how to convert pixels (NEAREST gives more of a pixel-art feel)
 
-        tex.swizzle = "BGRA"  # The swizzle mask change/reorder the vec4 value returned by the texture() function in a GLSL shaders
+        # The swizzle mask change/reorder the vec4 value returned by the texture() function in a GLSL shaders
+        tex.swizzle = "BGRA"
         # This is done to convert between pygame and OpenGL color formats
 
-        tex.write(surf.get_view("1"))  # pygame: '1' returns a (surface-width * surface-height) array of continuous pixels
+        # pygame: '1' returns a (surface-width * surface-height) array of continuous pixels
+        tex.write(surf.get_view("1"))
         return tex
 
     def event_loop(self) -> None:
@@ -188,12 +203,15 @@ class GameGL:
             self.effect_counter = 0
 
     def draw(self) -> None:
-        self.game_surface.fill((0, 0, 0, 0))  # we erase the game_surface so we start with a clean transparent canvas each iteration
+        # we erase the game_surface so we start with a clean transparent canvas each iteration
+        self.game_surface.fill((0, 0, 0, 0))
 
-        self.state.draw(self.game_surface)  # call the update function in active state (on game_surface, not the screen)
+        # call the update function in active state (on game_surface, not the screen)
+        self.state.draw(self.game_surface)
 
         if settings.SHOW_FPS:
-            fps_text = self.font.render(f"FPS: {self.clock.get_fps():.2f}", True, (255, 255, 0))
+            fps_text = self.font.render(
+                f"FPS: {self.clock.get_fps():.2f}", True, (255, 255, 0))
             self.game_surface.blit(fps_text, (10, 100))
 
         # -----------------------------------------------------------------------------------------------------------
@@ -204,23 +222,25 @@ class GameGL:
         # This should correspond with the value of the sampler2D uniform
         # in the shader because samplers read from the texture unit we assign to them
 
-        self.program["u_bg_tex"] = 0  #  Write to tex uniform the value 0, which is how the Sampler2D knows its input
+        # Write to tex uniform the value 0, which is how the Sampler2D knows its input
+        self.program["u_bg_tex"] = 0
         self.program["u_tex"] = 1
 
         self.program["u_effect"] = self.state.active_effect
         self.program["u_effect_x"], self.program["u_effect_y"] = self.state.effect_coords
 
         self.program["u_time"] = self.effect_counter
-        #ic(self.effect_counter)
+        # ic(self.effect_counter)
 
-
-         # Enable blending for transparency
+        # Enable blending for transparency
         self.ctx.enable(moderngl.BLEND)
 
-        self.render_object.render(mode=moderngl.TRIANGLE_STRIP)  # Triangle strip used to convert our quad_buffer
+        # Triangle strip used to convert our quad_buffer
+        self.render_object.render(mode=moderngl.TRIANGLE_STRIP)
         # -----------------------------------------------------------------------------------------------------------
 
-        pg.display.flip()  # We use flip() as we have set the pg.DOUBLEBUF flag in display.set_mode() earlier
+        # We use flip() as we have set the pg.DOUBLEBUF flag in display.set_mode() earlier
+        pg.display.flip()
 
         frame_tex.release()  # free up VRAM - required!
 

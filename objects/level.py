@@ -3,6 +3,8 @@ from objects.gameinfo import GameInfo
 from objects.gameobject import Planet
 from settings import SCREEN_HEIGHT, SCREEN_WIDTH
 
+from utility.debug import debug
+
 import pygame as pg
 import math
 from icecream import ic
@@ -31,8 +33,6 @@ class Level:
 
     def _get_distance(self) -> int:
         return int(math.sqrt((self.player.rect.centerx - self.enemy.rect.centerx)**2 + (self.player.rect.centery - self.enemy.rect.centery)**2))  # type: ignore
-
-        
 
     # Set up players and all sprite groups
     def startup(self, number) -> None:
@@ -70,8 +70,8 @@ class Level:
 
         # Randomizing locations and objects:
         self.celestials = []
-        for celest in range(0, random.randint(1,3)):
-            planet = Planet(celest, random.randint(int(settings.SCREEN_WIDTH * 0.1),int(settings.SCREEN_WIDTH * 0.9)), 
+        for celest in range(0, random.randint(1, 3)):
+            planet = Planet(celest, random.randint(int(settings.SCREEN_WIDTH * 0.1), int(settings.SCREEN_WIDTH * 0.9)),
                             random.randint(int(settings.SCREEN_HEIGHT * 0.1), int(settings.SCREEN_HEIGHT * 0.9)))
             self.celestials.append(planet)
             self.celestial_sprites.add(planet)
@@ -90,6 +90,7 @@ class Level:
 
     # Update all objects
     def update(self) -> None:
+       
         #ic(self.zoom)
        
         # Setting the camera position to be directly between the players
@@ -129,17 +130,17 @@ class Level:
 
             # Celestial collision - we use masks for precision
             for celestial in self.celestials:
-                pg.sprite.spritecollide(celestial, self.player.projectiles, True, pg.sprite.collide_mask)
-                pg.sprite.spritecollide(celestial, self.enemy.projectiles, True, pg.sprite.collide_mask)
-                if pg.sprite.spritecollide(celestial, self.enemy_ai_sprites, False, pg.sprite.collide_mask):
+                pg.sprite.spritecollide(celestial, self.player.projectiles, True, pg.sprite.collide_mask)  # type: ignore
+                pg.sprite.spritecollide(celestial, self.enemy.projectiles, True, pg.sprite.collide_mask)  # type: ignore
+                if pg.sprite.spritecollide(celestial, self.enemy_ai_sprites, False, pg.sprite.collide_mask):  # type: ignore
                     enemy_hit = True
-                if pg.sprite.spritecollide(celestial, self.player_sprites, False, pg.sprite.collide_mask):
+                if pg.sprite.spritecollide(celestial, self.player_sprites, False, pg.sprite.collide_mask):  # type: ignore
                     player_hit = True
 
             # Ship and projectile collisions
-            if pg.sprite.spritecollide(self.enemy, self.player.projectiles, False, pg.sprite.collide_mask):
+            if pg.sprite.spritecollide(self.enemy, self.player.projectiles, False, pg.sprite.collide_mask):  # type: ignore
                 enemy_hit = True
-            if pg.sprite.spritecollide(self.player, self.enemy.projectiles, False, pg.sprite.collide_mask):
+            if pg.sprite.spritecollide(self.player, self.enemy.projectiles, False, pg.sprite.collide_mask):  # type: ignore
                 player_hit = True    
 
             # Enemy collision
@@ -179,10 +180,12 @@ class Level:
                 self.teleport_coords = self.enemy.teleport_coords
             self.player.teleporting = self.enemy.teleporting = False
 
-                
-
     # Draw all sprite groups + background
     def draw(self, surface) -> None:
+        # DEBUG SECTION
+        message = ic(self.player.vel_x, self.player.vel_y, self.player.accelleration)
+        debug(message, x=20, y=20, surface=surface, color="#ffff00")
+
 
         '''
         Draw player information
@@ -241,13 +244,13 @@ class Level:
                         
                         match n:
                             case 0 | 5:
-                                color = pg.Color(128,0,0)
+                                color = pg.Color(128, 0, 0)
                             case 1 | 4:
-                                color = pg.Color(255,128,0)
+                                color = pg.Color(255, 128, 0)
                             case 3:
-                                color = pg.Color(255,255,0)
+                                color = pg.Color(255, 255, 0)
 
-                        pg.draw.circle(surface, color, (self.explosion_x + self.h_scroll, self.explosion_y + self.v_scroll), radius=radius + n*2 , width=3)
+                        pg.draw.circle(surface, color, (self.explosion_x + self.h_scroll, self.explosion_y + self.v_scroll), radius=radius + n * 2, width=3)
 
                     self.big_boom_size += 5
                 else:

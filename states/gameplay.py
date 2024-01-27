@@ -1,13 +1,11 @@
-from .base import BaseState
-from objects.level import Level
-from time import time, perf_counter
-
-from icecream import ic
+import pygame as pg
 import sys
 
-sys.path.append("../objects")
+from .base import BaseState
+from objects.level import Level
+from time import perf_counter
 
-import pygame as pg
+sys.path.append("../objects")
 
 
 class GamePlay(BaseState):
@@ -27,9 +25,6 @@ class GamePlay(BaseState):
         self.next_state = "READY"
         self.effect_timer = 0
         
-        
-
-
     # Get events from level instance, which in turn gets events from player instance(s)
     def get_event(self, event) -> None:
         self.level.get_event(event)

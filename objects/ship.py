@@ -3,11 +3,9 @@ from settings import SCREEN_HEIGHT, SCREEN_WIDTH
 
 import pygame as pg
 import time
-from icecream import ic
 import math
 import random
 import settings
-from collections import namedtuple
 
 
 class Ship(GameObject):
@@ -137,6 +135,7 @@ class Ship(GameObject):
                 p_energy,
                 p_recharge,
                 p_fire_rate,
+                p_explode,
                 p_direction,
                 p_velocity,
                 p_direction,
@@ -150,26 +149,38 @@ class Ship(GameObject):
         return super().trigger_shield()
 
     def fire_special(self) -> None:
-        match self.ship_type:
-            case "martian":  # Teleport
-                self.x_pos = random.randint(100, SCREEN_WIDTH - 100)
-                self.y_pos = random.randint(100, SCREEN_HEIGHT - 100)
-                self.teleporting = True
-                self.teleport_coords = (self.x_pos, self.y_pos)
-                self.special_sound.play()
+        if not self.dead:
+            match self.ship_type:
+                case "martian":  # Teleport
+                    self.x_pos = random.randint(100, SCREEN_WIDTH - 100)
+                    self.y_pos = random.randint(100, SCREEN_HEIGHT - 100)
+                    self.teleporting = True
+                    self.teleport_coords = (self.x_pos, self.y_pos)
+                    self.special_sound.play()
 
 
 
     def update(self, zoom, h_scroll, v_scroll) -> tuple:
         if self.accelleration > 0 and not self.dead:  # the ship is accelerating in the direciton of its heading
-            # The accelleration happens in the direction of the self.heading 
-            x_accel = -math.sin(math.radians(self.heading)) * self.accelleration
-            y_accel = -math.cos(math.radians(self.heading)) * self.accelleration
+            # The accelleration happens in the direction of the self.heading
+            x_accel = y_accel = 0
+            if self.vel_x < self.max_velocity:
+                x_accel = -math.sin(math.radians(self.heading)) * self.accelleration
+            if self.vel_y < self.max_velocity:
+                y_accel = -math.cos(math.radians(self.heading)) * self.accelleration
 
-            # We only allow accelleration which leads to a total speed of self.max_velocity or less
-            if math.sqrt((self.vel_x + x_accel)**2 + (self.vel_y + y_accel)**2) <= self.max_velocity:
+            # We only allow accelleration which leads to a total speed of self.max_velocity or less,
+            # or anmything that slows us down 
+
+            vel_old = math.sqrt(self.vel_x**2 + self.vel_y**2)
+            vel_new = math.sqrt((self.vel_x + x_accel)**2 + (self.vel_y + y_accel)**2)
+
+            # We only allow accelleration if we're under under max speed or player wants to net slow down
+            if vel_new <= self.max_velocity or vel_new < vel_old:
                 self.vel_x += x_accel
                 self.vel_y += y_accel
+
+            
                 
         # Add engine trails if we're accellerating
         if self.accelleration > 0 and time.time() - self.last_engine_trail > 0.1:
