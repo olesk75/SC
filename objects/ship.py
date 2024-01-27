@@ -52,8 +52,8 @@ class Ship(GameObject):
                 self.max_velocity = 10
                 self.max_energy = 1000
                 self.turn_speed = 5
-                self.image_ship = pg.image.load("assets/ships/martian_3.png").convert_alpha()
-                self.image_engines = pg.image.load("assets/ships/martian_3-engines.png").convert_alpha()
+                self.image_ship = pg.image.load("assets/ships/martian_2.png").convert_alpha()
+                self.image_engines = pg.image.load("assets/ships/martian_2-engines.png").convert_alpha()
                 self.special = "teleport"
                 self.fire_sound = pg.mixer.Sound("assets/sounds/shot_5.wav")
                 self.fire_sound.set_volume(0.9)
@@ -68,8 +68,8 @@ class Ship(GameObject):
                 self.max_velocity = 15
                 self.max_energy = 1000
                 self.turn_speed = 5
-                self.image_ship = pg.image.load("assets/ships/plutonian_3.png").convert_alpha()
-                self.image_engines = pg.image.load("assets/ships/plutonian_3-engines.png").convert_alpha()
+                self.image_ship = pg.image.load("assets/ships/plutonian_2.png").convert_alpha()
+                self.image_engines = pg.image.load("assets/ships/plutonian_2-engines.png").convert_alpha()
                 self.special = "shield"
                 self.fire_sound = pg.mixer.Sound("assets/sounds/fire_2.wav")
                 self.fire_sound.set_volume(0.9)
@@ -192,7 +192,7 @@ class Ship(GameObject):
         if not self.dead:
             self.spin(self.turning, self.turn_speed)
 
-        self.image_orig = self.image
+        self.image_orig = self.image_ship
         self.rect_orig = self.image_orig.get_rect()  # TODO: every update????
 
         # Rotation
@@ -202,8 +202,8 @@ class Ship(GameObject):
         # TODO: rework this to have momentum
 
         # Movement
-        self.x_pos += self.vel_x
-        self.y_pos += self.vel_y
+        self.x_pos += self.vel_x / 3
+        self.y_pos += self.vel_y / 3
         
         # We show up on the other side if we hit the edges
         if self.vel_x > 0 and self.x_pos >= settings.SCREEN_WIDTH: 

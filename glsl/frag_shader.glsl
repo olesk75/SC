@@ -59,11 +59,19 @@ void main() {
 
     switch (u_effect) {
         /*
-        Default: no effect, only foreground layered on top of background according to foreground transparency
+        Zoomed version of the screen - default 
         */
-        case 10: 
-            f_color = mix(texture(u_bg_tex, uvs), texture(u_tex, uvs), texture(u_tex, uvs).a);
+        case 0:
+            
+            vec2 scaleCenter = vec2(u_zoom_x/u_screenWidth, u_zoom_y/u_screenHeight);
+
+            float zoom = (u_zoom_lvl / 3);
+            vec2 uv_z = (st - scaleCenter) * zoom + scaleCenter;
+
+            f_color = mix(texture(u_bg_tex, uv_z), texture(u_tex, uv_z), texture(u_tex, uv_z).a);
+        
             break;
+
 
         /*
         Test effect - shows red frame
@@ -83,19 +91,7 @@ void main() {
             f_color = vec4(color, 1.0);     // here the last figure _is_ transparency
             break;
 
-        /*
-        Zoom effect - WIP!
-        */
-        case 0:
-            
-            vec2 scaleCenter = vec2(u_zoom_x/u_screenWidth, u_zoom_y/u_screenHeight);
-
-            float zoom = (u_zoom_lvl / 3);
-            vec2 uv_z = (st - scaleCenter) * zoom + scaleCenter;
-
-            f_color = mix(texture(u_bg_tex, uv_z), texture(u_tex, uv_z), texture(u_tex, uv_z).a);
         
-            break;
 
         /*
         Fade to black effect 
@@ -180,6 +176,12 @@ void main() {
         f_color = mix(texture(u_bg_tex, texCoord), texture(u_tex, texCoord), texture(u_tex, texCoord).a);
         
         break;
+        /*
+        No effect, only foreground layered on top of background according to foreground transparency
+        */
+        case 10: 
+            f_color = mix(texture(u_bg_tex, uvs), texture(u_tex, uvs), texture(u_tex, uvs).a);
+            break;
     }                         
 }
 
