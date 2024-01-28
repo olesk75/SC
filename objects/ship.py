@@ -61,6 +61,11 @@ class Ship(GameObject):
                 self.fire_sound.set_volume(0.9)
                 self.special_sound = pg.mixer.Sound("assets/sounds/change_1.wav")
                 self.special_sound.set_volume(0.4)
+                self.hit_other_sound = pg.mixer.Sound("assets/sounds/hit1.wav")
+                self.hit_other_sound.set_volume(0.5)
+                self.explosion_sound = pg.mixer.Sound("assets/sounds/explosion - muffled big.wav")
+                self.explosion_sound.set_volume(1.0)
+
             case "plutonian":
                 self.health = 2000
                 self.shield = 500
@@ -77,6 +82,11 @@ class Ship(GameObject):
                 self.fire_sound.set_volume(0.9)
                 self.special_sound = pg.mixer.Sound("assets/sounds/shot_5.wav")
                 self.special_sound.set_volume(0.5)
+                self.hit_other_sound = pg.mixer.Sound("assets/sounds/hit2.wav")
+                self.hit_other_sound.set_volume(0.5)
+                self.explosion_sound = pg.mixer.Sound("assets/sounds/explosion - muffled big.wav")
+                self.explosion_sound.set_volume(1.0)
+
             case _:
                 raise ValueError(f"{ship_type} is not an allowed ship type")
 

@@ -144,7 +144,7 @@ class Level:
         self.enemy.projectiles.update()
         self.enemy.engine_trails.update()
 
-        self.enemy.ai.update(self.player)
+        self.enemy.ai.update(self.player, self.celestials)
 
         # Update effect of celestial objects
         for celestial in self.celestials:  # for each planet
@@ -170,8 +170,6 @@ class Level:
 
         # Check collisions
         if self.state == 'run':
-            enemy_hit = False
-            player_hit = False
 
             # Celestial collision - we use masks for precision, they are fatal
             for celestial in self.celestials:
@@ -184,18 +182,37 @@ class Level:
                     self.player.health = 0
                     self.player.vel_x = self.player.vel_y = 0  # if we hit a planet, we stop
 
-            # Ship and projectile collisions - damage depends on projectile
+            # Ship + projectile collisions - damage depends on projectile
             projectile_hit = pg.sprite.spritecollide(self.enemy, self.player.projectiles, False, pg.sprite.collide_mask)  # type: ignore
             if projectile_hit:
                 projectile = projectile_hit.pop()
-
                 self.enemy.hit_pos = projectile.rect.center
                 self.enemy.hit = True
-            
                 projectile.kill()  # we remove the projectile
                 self.enemy.health -= self.player.p.damage 
-            if pg.sprite.spritecollide(self.player, self.enemy.projectiles, False, pg.sprite.collide_mask):  # type: ignore
-                self.player.health -= self.enemy.p.damage
+                self.player.hit_other_sound.play()
+
+            # Player                
+            projectile_hit = pg.sprite.spritecollide(self.player, self.enemy.projectiles, False, pg.sprite.collide_mask)  # type: ignore
+            if projectile_hit:
+                projectile = projectile_hit.pop()
+                self.player.hit_pos = projectile.rect.center
+                self.player.hit = True
+            
+                projectile.kill()  # we remove the projectile
+                self.player.health -= self.enemy.p.damage 
+                self.enemy.hit_other_sound.play()
+                
+            
+
+            # Ship + ship collisions: bounce-back (with small damage?)
+            if pg.sprite.spritecollide(self.enemy, self.player_sprites, False, pg.sprite.collide_mask):  # type: ignore    
+                (x, y) = self.player.vel_x, self.player.vel_y
+                (self.player.vel_x, self.player.vel_y) = (self.enemy.vel_x, self.enemy.vel_y)  # we swap velocities 
+                (self.enemy.vel_x, self.enemy.vel_y) = (x, y)
+                self.enemy.health -= 100
+                self.player.health -= 100
+
 
             # Enemy dead (health zub zero)
             if self.enemy.health <= 0:
@@ -210,6 +227,7 @@ class Level:
 
                 self.explosion_x = self.enemy.x_pos
                 self.explosion_y = self.enemy.y_pos
+                self.enemy.explosion_sound.play()
                 self.sound_win.play()
 
             # Player dead (health zub zero)
@@ -224,6 +242,7 @@ class Level:
                 self.start_time = pg.time.get_ticks()
                 self.explosion_x = self.player.x_pos
                 self.explosion_y = self.player.y_pos
+                self.player.explosion_sound.play()
                 self.sound_loss.play()
 
         if self.player.teleporting or self.enemy.teleporting:
@@ -237,7 +256,8 @@ class Level:
     # Draw all sprite groups + background
     def draw(self, surface, overlay) -> None:
         # DEBUG SECTION
-        message = f'vel_x: {self.player.vel_x:.2f}, vel_y: {self.player.vel_y:.2f}, accel: {self.player.accelleration:.2f}'
+        #message = f'vel_x: {self.player.vel_x:.2f}, vel_y: {self.player.vel_y:.2f}, accel: {self.player.accelleration:.2f}'
+        message = f'AI attitude: {self.enemy.ai.attitude}'
         debug(message, x=20, y=20, surface=overlay, color="#ffff00")
 
         '''
@@ -265,8 +285,6 @@ class Level:
             if ship.hit:
                 pg.draw.circle(surface, '#ffff00', ship.hit_pos, radius=15, width=15)
                 ship.hit = False
-
-        
 
         '''
         Draw all enemy-related sprites
@@ -307,7 +325,6 @@ class Level:
                                 color = pg.Color(255, 255, 0)
 
                         pg.draw.circle(surface, color, (self.explosion_x, self.explosion_y), radius=radius + n * 2, width=3)
-
                     self.big_boom_size += 5
                 else:
                     self.explosion = False
