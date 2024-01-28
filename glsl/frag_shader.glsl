@@ -2,6 +2,7 @@
 
 uniform sampler2D u_tex;  // let's the shader sample value from the texture u_tex
 uniform sampler2D u_bg_tex;
+uniform sampler2D u_overlay_tex;
 
 uniform float u_screenHeight;
 uniform float u_screenWidth;
@@ -62,13 +63,21 @@ void main() {
         Zoomed version of the screen - default 
         */
         case 0:
-            
+            // scaleCenter is literally that, the center between the two ships, but we need top left
             vec2 scaleCenter = vec2(u_zoom_x/u_screenWidth, u_zoom_y/u_screenHeight);
 
             float zoom = (u_zoom_lvl / 3);
             vec2 uv_z = (st - scaleCenter) * zoom + scaleCenter;
 
-            f_color = mix(texture(u_bg_tex, uv_z), texture(u_tex, uv_z), texture(u_tex, uv_z).a);
+            vec4 foreground, overlay, background, foreground_mix;
+
+            foreground = texture(u_tex, uv_z);
+            overlay = texture(u_overlay_tex, uvs );
+            background = texture(u_bg_tex, uv_z);
+
+            foreground_mix = mix(foreground, overlay, overlay.a);
+
+            f_color = mix(background, foreground_mix, foreground_mix.a);
         
             break;
 
@@ -177,7 +186,7 @@ void main() {
         
         break;
         /*
-        No effect, only foreground layered on top of background according to foreground transparency
+        No effect, only foreground layered on top of background according to foreground transparency - this is baseline
         */
         case 10: 
             f_color = mix(texture(u_bg_tex, uvs), texture(u_tex, uvs), texture(u_tex, uvs).a);

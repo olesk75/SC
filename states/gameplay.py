@@ -69,5 +69,5 @@ class GamePlay(BaseState):
                     self.active_effect = 0
 
 
-    def draw(self, surface) -> None:
-        self.level.draw(surface)
+    def draw(self, surface, overlay) -> None:
+        self.level.draw(surface, overlay)

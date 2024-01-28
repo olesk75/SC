@@ -25,13 +25,31 @@ class Level:
         self.teleport_triggered = False  # used to track GLSL effects for teleports
         self.teleport_coords: tuple
 
-        self.zoom = 3  # zoom, 1 is closest, 3 furthest out
+        self.zoom = 0  # zoom, 1 is closest, 3 furthest out
         self.zoom_x = 0  # zoom coordinates
         self.zoom_y = 0
         self.framecounter = 0  # keeps track of iterations to reduce operations each frame
 
     def _get_distance(self) -> int:
         return int(math.sqrt((self.player.rect.centerx - self.enemy.rect.centerx)**2 + (self.player.rect.centery - self.enemy.rect.centery)**2))  # type: ignore
+    
+    def _set_zoom(self, zoom) -> tuple[int, int, int]:
+        distance = math.sqrt((self.player.rect.centerx - self.enemy.rect.centerx)**2 + (self.player.rect.centery - self.enemy.rect.centery)**2) # type: ignore
+        if distance > SCREEN_WIDTH/3:
+            if zoom != 3:
+                zoom = 3
+
+        elif distance > SCREEN_WIDTH/5.8:
+            if zoom != 2:
+                zoom = 2
+        else:
+            if zoom != 1:
+                zoom = 1
+
+        zoom_x = int((self.player.rect.centerx + self.enemy.rect.centerx) / 2)  # type: ignore
+        zoom_y = int((self.player.rect.centery + self.enemy.rect.centery) / 2)  # type: ignore
+
+        return (zoom, zoom_x, zoom_y)
 
     # Set up players and all sprite groups
     def startup(self, number) -> None:
@@ -89,30 +107,8 @@ class Level:
 
     # Update all objects
     def update(self) -> None:
-        # Determine zoom level
-        # 1 - fully zoomed in 
-        # 2 - medium zoom
-        # 3 - fully zoomed out
-        distance = math.sqrt((self.player.rect.centerx - self.enemy.rect.centerx)**2 + (self.player.rect.centery - self.enemy.rect.centery)**2)  
-
-        if distance > 300:
-            if self.zoom != 3:
-                self.zoom = 3
-                self.zoom_x = (self.player.rect.centerx + self.enemy.rect.centerx) / 2
-                self.zoom_y = (self.player.rect.centery + self.enemy.rect.centery) / 2
-
-        elif distance > 100:
-            if self.zoom != 2:
-                self.zoom = 2
-                self.zoom_x = (self.player.rect.centerx + self.enemy.rect.centerx) / 2
-                self.zoom_y = (self.player.rect.centery + self.enemy.rect.centery) / 2
-        else:
-            if self.zoom != 1:
-                self.zoom = 1
-                self.zoom_x = (self.player.rect.centerx + self.enemy.rect.centerx) / 2
-                self.zoom_y = (self.player.rect.centery + self.enemy.rect.centery) / 2
-
         self.player.update()
+        (self.zoom, self.zoom_x, self.zoom_y) = self._set_zoom(self.zoom)
 
         # Updates the players's projectile sprites
         self.player.projectiles.update()
@@ -208,23 +204,17 @@ class Level:
             self.player.teleporting = self.enemy.teleporting = False
 
     # Draw all sprite groups + background
-    def draw(self, surface) -> None:
+    def draw(self, surface, overlay) -> None:
         # DEBUG SECTION
         message = f'vel_x: {self.player.vel_x:.2f}, vel_y: {self.player.vel_y:.2f}, accel: {self.player.accelleration:.2f}'
-        debug(message, x=20, y=20, surface=surface, color="#ffff00")
-
+        debug(message, x=20, y=20, surface=overlay, color="#ffff00")
 
         '''
         Draw player information
         '''
-        self.game_info.draw(
-            surface,
-            "Player 1",
-            self.player.health,
-            self.player.energy,
-            "Enemy AI",
-            self.enemy.health,
-            self.enemy.energy,
+        self.game_info.draw(overlay,
+            "Player 1", self.player.health, self.player.energy,
+            "Enemy AI", self.enemy.health, self.enemy.energy,
         )
 
         '''

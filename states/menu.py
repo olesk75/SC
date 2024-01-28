@@ -37,7 +37,7 @@ class Menu(BaseState):
             elif event.key == pg.K_RETURN:
                 self.handle_action()
 
-    def draw(self, surface) -> None:
+    def draw(self, surface, overlay) -> None:
         surface.fill((0,0,0,0))
         for index, option in enumerate(self.options):
             text_render = self.render_text(index)

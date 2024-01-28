@@ -73,7 +73,7 @@ class Ready(BaseState):
         self.ship_group.update()
         self.ship_group.draw(surface)
 
-    def draw(self, surface) -> None:
+    def draw(self, surface, overlay) -> None:
         middle = int(SCREEN_WIDTH / 2)
 
         surface.fill((0,0,0,0))  # reset surface with full alpha

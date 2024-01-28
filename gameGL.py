@@ -62,13 +62,10 @@ class GameGL:
             10, 10)  # We place scaled window top left
 
         # flags = pg.FULLSCREEN | pg.HWSURFACE | pg.SCALED
-        FLAGS = pg.OPENGL | pg.DOUBLEBUF
-        self.screen = pg.display.set_mode(
-            (width * scale, height * scale), FLAGS)
-        self.game_surface = pg.Surface(
-            (settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT), pg.SRCALPHA)
-        self.blank_surface = pg.Surface(
-            (settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT), pg.SRCALPHA)
+        self.screen = pg.display.set_mode((width * scale, height * scale), pg.OPENGL | pg.DOUBLEBUF)
+        self.game_surface = pg.Surface((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT), pg.SRCALPHA)
+        self.game_overlay = pg.Surface((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT), pg.SRCALPHA)
+
 
         """
         --------------------------------------------------------------------------------
@@ -116,21 +113,16 @@ class GameGL:
             frag_shader = file.read()
 
         ic("Shader compilation start")
-        self.program = self.ctx.program(
-            vert_shader, frag_shader)  # compiles GLSL code
+        self.program = self.ctx.program(vert_shader, frag_shader)  # compiles GLSL code
 
-        self.render_object = self.ctx.vertex_array(
-            self.program, [(quad_buffer, "2f 2f", "in_vert", "in_texcoord")]
-            # format is 2 floats ('in_verts') and 2 floats ('in_texcoord') for the buffer
-        )
-        # it's important that the names used for the buffer parts matches the in varaibles in the vertex shader
+        # format is 2 floats ('in_verts') and 2 floats ('in_texcoord') for the buffer
+        self.render_object = self.ctx.vertex_array(self.program, [(quad_buffer, "2f 2f", "in_vert", "in_texcoord")])
         ic("Shader compilation end")
 
         # Enable blending
         self.ctx.enable(moderngl.BLEND)
         # Set the blending function
-        self.ctx.blend_func = (
-            moderngl.SRC_ALPHA, moderngl.ONE_MINUS_SRC_ALPHA)
+        self.ctx.blend_func = (moderngl.SRC_ALPHA, moderngl.ONE_MINUS_SRC_ALPHA)
 
         # Initial values
         self.program["u_effect"] = 1
@@ -140,8 +132,7 @@ class GameGL:
 
         # Image background loaded as completely separate texture (same size as game texture)
         # bg_surf = pg.image.load("assets/backgrounds/Starfields/Starfield 3 - 1024x1024.png").convert_alpha()
-        bg_surf = pg.image.load(
-            "assets/backgrounds/Blue Nebula/Blue Nebula 8 - 1024x1024.png").convert_alpha()
+        bg_surf = pg.image.load("assets/backgrounds/Blue Nebula/Blue Nebula 8 - 1024x1024.png").convert_alpha()
         self.bg_tex = self.surf_to_texture(bg_surf)
         self.bg_tex.use(0)
         """
@@ -203,20 +194,23 @@ class GameGL:
             self.effect_counter = 0
 
     def draw(self) -> None:
-        # we erase the game_surface so we start with a clean transparent canvas each iteration
+        # we erase the game surfaces so we start with a clean transparent canvas each iteration
         self.game_surface.fill((0, 0, 0, 0))
+        self.game_overlay.fill((0, 0, 0, 0))
 
         # call the update function in active state (on game_surface, not the screen)
-        self.state.draw(self.game_surface)
+        self.state.draw(self.game_surface, self.game_overlay)
 
         if settings.SHOW_FPS:
             fps_text = self.font.render(
                 f"FPS: {self.clock.get_fps():.2f}", True, (255, 255, 0))
-            self.game_surface.blit(fps_text, (10, 100))
+            self.game_overlay.blit(fps_text, (10, 100))
 
         # -----------------------------------------------------------------------------------------------------------
         frame_tex = self.surf_to_texture(self.game_surface)
-        frame_tex.use(1)  # Set use index
+        frame_tex.use(1)  # Set use index 1
+        frame_tex = self.surf_to_texture(self.game_overlay)
+        frame_tex.use(2)  # Set use index 2
 
         # The location is the texture unit we want to bind the texture.
         # This should correspond with the value of the sampler2D uniform
@@ -225,6 +219,7 @@ class GameGL:
         # Write to tex uniform the value 0, which is how the Sampler2D knows its input
         self.program["u_bg_tex"] = 0
         self.program["u_tex"] = 1
+        self.program["u_overlay_tex"] = 2
 
         self.program["u_effect"] = self.state.active_effect
         self.program["u_effect_x"], self.program["u_effect_y"] = self.state.effect_coords

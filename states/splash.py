@@ -19,7 +19,7 @@ class Splash(BaseState):
         if time.time() > self.start_time + 1:
             self.done = True
 
-    def draw(self, surface) -> None:
+    def draw(self, surface, overlay) -> None:
         self.title_rect = self.title.get_rect(center=surface.get_rect().center)
         surface.fill((0,0,0,0))
         surface.blit(self.title, self.title_rect)
