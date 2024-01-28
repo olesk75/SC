@@ -116,8 +116,8 @@ class EngineTrail(pg.sprite.Sprite):
         if self.ticks >= self.lifespan:
             self.kill()
 
-        self.rect.x = self.pos_x 
-        self.rect.y = self.pos_y
+        self.rect.x = self.pos_x # type:ignore
+        self.rect.y = self.pos_y # type:ignore
         self.image.set_alpha(255 - self.ticks * 10)
 
 
@@ -199,14 +199,15 @@ class Projectile(GameObject):
 
 
 class Planet(pg.sprite.Sprite):
-    def __init__(self, planet_type, x, y) -> None:
+    def __init__(self, planet_type, pos) -> None:
+
         super().__init__()
         self.image: pg.Surface
         if planet_type == 0 or planet_type == 1 or planet_type == 2:
             self.image = pg.image.load("assets/planets/planet1small.png").convert_alpha()
 
         self.rect = self.image.get_rect()
-        self.rect.center = (x, y)
+        self.rect.center = pos
 
         mask = pg.mask.from_surface(self.image)
         (x, y) = mask.get_size()

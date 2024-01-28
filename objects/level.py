@@ -31,14 +31,34 @@ class Level:
         self.framecounter = 0  # keeps track of iterations to reduce operations each frame
 
     def _get_distance(self) -> int:
+        '''
+        Return distance between players
+        '''
         return int(math.sqrt((self.player.rect.centerx - self.enemy.rect.centerx)**2 + (self.player.rect.centery - self.enemy.rect.centery)**2))  # type: ignore
+    
+    def _random_location(self, number) -> list[tuple]:
+        '''
+        Return  random locations in a list of locations with a minumum separation 
+        '''
+        locations = []
+        
+        min_distance = 150  # pixels minumum separation
+        while len(locations) < number:
+            x = random.randint(int(SCREEN_WIDTH * 0.1), int(SCREEN_WIDTH * 0.9))  # avoiding the edges
+            y = random.randint(int(SCREEN_HEIGHT * 0.1), int(SCREEN_HEIGHT * 0.9))
+
+            distance = lambda x1, y1, x2, y2: ((x1 - x2)**2 + (y1 - y2)**2)**0.5
+        
+            # Check if the new point is at least min_distance away from existing points
+            if all(distance(x, y, cx, cy) >= min_distance for cx, cy in locations):
+                locations.append((x, y))
+        return locations
     
     def _set_zoom(self, zoom) -> tuple[int, int, int]:
         distance = math.sqrt((self.player.rect.centerx - self.enemy.rect.centerx)**2 + (self.player.rect.centery - self.enemy.rect.centery)**2) # type: ignore
         if distance > SCREEN_WIDTH/3:
             if zoom != 3:
                 zoom = 3
-
         elif distance > SCREEN_WIDTH/5.8:
             if zoom != 2:
                 zoom = 2
@@ -51,20 +71,23 @@ class Level:
 
         return (zoom, zoom_x, zoom_y)
 
-    # Set up players and all sprite groups
+     
     def startup(self, number) -> None:
+        '''
+        Set up players and all sprite groups
+        '''
         self.game_info = GameInfo()
 
+        random_locations = self._random_location(10)  # generate 10 random locations, more than 100 pixels apart
+
         self.player = Player(
-            x_pos=random.randint(100, SCREEN_WIDTH - 100),
-            y_pos=random.randint(100, SCREEN_HEIGHT - 100),
+            random_locations.pop(),
             heading=random.random() * 359,
             ship_type="martian",
         )
 
         self.enemy = EnemyAI(
-            x_pos=random.randint(100, SCREEN_WIDTH - 100),
-            y_pos=random.randint(100, SCREEN_HEIGHT - 100),
+            random_locations.pop(),
             heading=random.random() * 359,
             ship_type="plutonian",
             skill=self.enemyAI_difficulty,
@@ -88,8 +111,7 @@ class Level:
         # Randomizing locations and objects:
         self.celestials = []
         for celest in range(0, random.randint(1, 3)):
-            planet = Planet(celest, random.randint(int(settings.SCREEN_WIDTH * 0.1), int(settings.SCREEN_WIDTH * 0.9)),
-                            random.randint(int(settings.SCREEN_HEIGHT * 0.1), int(settings.SCREEN_HEIGHT * 0.9)))
+            planet = Planet(celest, random_locations.pop(),)
             self.celestials.append(planet)
             self.celestial_sprites.add(planet)
 

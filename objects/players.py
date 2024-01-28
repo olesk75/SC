@@ -18,9 +18,10 @@ class EnemyAI(Ship):
     Similar to Player() class, but with additional skill
     """
 
-    def __init__(self, x_pos, y_pos, heading, ship_type, skill) -> None:
+    def __init__(self, pos, heading, ship_type, skill) -> None:
         velocity = 0
         direction = 0
+        (x_pos, y_pos) = pos
         super().__init__(x_pos, y_pos, direction, velocity, heading, ship_type)
         self.projectiles = pg.sprite.Group()
         self.engine_trails = pg.sprite.Group()
@@ -29,9 +30,10 @@ class EnemyAI(Ship):
 
 
 class Player(Ship):
-    def __init__(self, x_pos, y_pos, heading, ship_type) -> None:
+    def __init__(self, pos, heading, ship_type) -> None:
         velocity = 0
         direction = 0
+        (x_pos, y_pos) = pos
         super().__init__(x_pos, y_pos, direction, velocity, heading, ship_type)
         self.projectiles = pg.sprite.Group()
         self.engine_trails = pg.sprite.Group()
