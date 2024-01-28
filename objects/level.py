@@ -20,6 +20,7 @@ class Level:
 
         self.projectiles_live = 0
         self.explosion = False  # nothing starts out exploding
+        self.arriving = True  # ships are arriving when we start a new lvl
         self.big_boom_size = 1  # start at 1 to avoid divide by zero
         self.start_fadeout = False
         self.teleport_triggered = False  # used to track GLSL effects for teleports
@@ -28,6 +29,7 @@ class Level:
         self.zoom = 0  # zoom, 1 is closest, 3 furthest out
         self.zoom_x = 0  # zoom coordinates
         self.zoom_y = 0
+
         self.framecounter = 0  # keeps track of iterations to reduce operations each frame
 
     def _get_distance(self) -> int:
@@ -171,25 +173,32 @@ class Level:
             enemy_hit = False
             player_hit = False
 
-            # Celestial collision - we use masks for precision
+            # Celestial collision - we use masks for precision, they are fatal
             for celestial in self.celestials:
                 pg.sprite.spritecollide(celestial, self.player.projectiles, True, pg.sprite.collide_mask)  # type: ignore
                 pg.sprite.spritecollide(celestial, self.enemy.projectiles, True, pg.sprite.collide_mask)  # type: ignore
                 if pg.sprite.spritecollide(celestial, self.enemy_ai_sprites, False, pg.sprite.collide_mask):  # type: ignore
-                    enemy_hit = True
+                    self.enemy.health = 0
                     self.enemy.vel_x = self.enemy.vel_y = 0  # if we hit a planet, we stop
                 if pg.sprite.spritecollide(celestial, self.player_sprites, False, pg.sprite.collide_mask):  # type: ignore
-                    player_hit = True
+                    self.player.health = 0
                     self.player.vel_x = self.player.vel_y = 0  # if we hit a planet, we stop
 
-            # Ship and projectile collisions
-            if pg.sprite.spritecollide(self.enemy, self.player.projectiles, False, pg.sprite.collide_mask):  # type: ignore
-                enemy_hit = True
-            if pg.sprite.spritecollide(self.player, self.enemy.projectiles, False, pg.sprite.collide_mask):  # type: ignore
-                player_hit = True    
+            # Ship and projectile collisions - damage depends on projectile
+            projectile_hit = pg.sprite.spritecollide(self.enemy, self.player.projectiles, False, pg.sprite.collide_mask)  # type: ignore
+            if projectile_hit:
+                projectile = projectile_hit.pop()
 
-            # Enemy collision
-            if enemy_hit:
+                self.enemy.hit_pos = projectile.rect.center
+                self.enemy.hit = True
+            
+                projectile.kill()  # we remove the projectile
+                self.enemy.health -= self.player.p.damage 
+            if pg.sprite.spritecollide(self.player, self.enemy.projectiles, False, pg.sprite.collide_mask):  # type: ignore
+                self.player.health -= self.enemy.p.damage
+
+            # Enemy dead (health zub zero)
+            if self.enemy.health <= 0:
                 self.enemy.dead = True
 
                 self.state = "win"
@@ -203,8 +212,8 @@ class Level:
                 self.explosion_y = self.enemy.y_pos
                 self.sound_win.play()
 
-            # Player collision
-            if player_hit:
+            # Player dead (health zub zero)
+            if self.player.health <= 0:
                 self.player.dead = True
 
                 self.state = "loss"
@@ -245,11 +254,19 @@ class Level:
         self.celestial_sprites.draw(surface)
 
         '''
-        Draw all player-related sprites
+        Draw all player-related sprites (mind the order!)
         '''
+        self.player.engine_trails.draw(surface)
         self.player_sprites.draw(surface)
         self.player.projectiles.draw(surface)
-        self.player.engine_trails.draw(surface)
+
+        # Hit indicators
+        for ship in [self.player, self.enemy]:
+            if ship.hit:
+                pg.draw.circle(surface, '#ffff00', ship.hit_pos, radius=15, width=15)
+                ship.hit = False
+
+        
 
         '''
         Draw all enemy-related sprites

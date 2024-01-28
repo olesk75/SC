@@ -132,6 +132,7 @@ class Projectile(GameObject):
         recharge: int,
         fire_rate: int,
         explode: bool,
+        damage: int,
         direction: int,
         velocity: int,
         heading: int,
@@ -155,6 +156,7 @@ class Projectile(GameObject):
         self.expiry_time = expiry_time
         self.explode = explode
         self.explosion_size: int
+        self.damage: int 
 
         self.ticks = 0
 
@@ -171,6 +173,7 @@ class Projectile(GameObject):
         if self.type == "placeholder":
             self.expiry_time = 60  # 60 tics * 3 = 3 seconds
             self.explosion_size = 50
+            self.damage = 100
 
     def fire(self, primary: bool) -> None:
         return super().fire(primary)

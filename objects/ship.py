@@ -28,6 +28,8 @@ class Ship(GameObject):
 
         self.firing = False
         self.dead = False
+        self.hit = False  # we use this to check if we should draw a hit indicator on the ship
+        self.hit_pos = (int, int)
         self.last_fire = 0
         self.last_energy_tick = 0
         self.last_engine_trail = 0
@@ -116,7 +118,8 @@ class Ship(GameObject):
             p_recharge = 0
             p_fire_rate = 0
             p_explode = False
-            p = Projectile(
+            p_damage = 100
+            self.p = Projectile(
                 self.x_pos,
                 self.y_pos,
                 p_health,
@@ -125,13 +128,14 @@ class Ship(GameObject):
                 p_recharge,
                 p_fire_rate,
                 p_explode,
+                p_damage,
                 p_direction,
                 p_velocity,
                 p_direction,
                 max_velocity=1000,
                 expiry_time=p_time,
             )
-            self.projectiles.add(p)
+            self.projectiles.add(self.p)
 
     # TODO: placeholder
     def trigger_shield(self) -> None:
@@ -180,20 +184,26 @@ class Ship(GameObject):
                 self.vel_x += x_accel
                 self.vel_y += y_accel
 
-            
-                
-        # Add engine trails if we're accellerating
-        if self.accelleration > 0 and time.time() - self.last_engine_trail > 0.1:
-            et = EngineTrail(self.x_pos, self.y_pos, "regular")
-            self.engine_trails.add(et)
-            self.last_engine_trail = time.time()
+
+        # If we're accelerating...
+        if self.accelleration > 0: 
+            # Add engine trails 
+            if time.time() - self.last_engine_trail > 0.1:
+                et = EngineTrail(self.x_pos, self.y_pos, "regular")
+                self.engine_trails.add(et)
+                self.last_engine_trail = time.time()
+                self.image_orig = self.image_engines
+                self.rect_orig = self.image_orig.get_rect()  # TODO: every update????
+        else:
+            # Image / animation of ship without engine fire
+            self.image_orig = self.image_ship
+            self.rect_orig = self.image_orig.get_rect()  # TODO: every update????
                    
 
         if not self.dead:
             self.spin(self.turning, self.turn_speed)
 
-        self.image_orig = self.image_ship
-        self.rect_orig = self.image_orig.get_rect()  # TODO: every update????
+        
 
         # Rotation
         self.image, self.rect = self._rotatesprite(self.image_orig, self.rect_orig, self.heading)

@@ -15,15 +15,10 @@ class SpriteSheet:
         x_start = frame * self.x_dim
         y_start = row * self.y_dim
 
-        image = pg.Surface(
-            (self.x_dim, self.y_dim), pg.SRCALPHA
-        ).convert_alpha()  # empty surface with alpha
-        image.blit(
-            self.image, (0, 0), (x_start, y_start, self.x_dim, self.y_dim)
-        )  # Copy part of sheet on top of empty image
+        image = pg.Surface((self.x_dim, self.y_dim), pg.SRCALPHA).convert_alpha()  # empty surface with alpha
+        image.blit(self.image, (0, 0), (x_start, y_start, self.x_dim, self.y_dim))  # Copy part of sheet on top of empty image
         image = pg.transform.scale(image, (self.x_dim * self.scale, self.y_dim * self.scale))
-        # image.set_colorkey(self.transp_color)
-
+        
         return image
 
 
