@@ -28,6 +28,8 @@ class GameObject(pg.sprite.Sprite, ABC):
         self.heading = heading
         self.max_velocity = max_velocity
 
+        self.under_gravity = False
+
         self.alive = True   # type: ignore
         self.firing = False
         self.shielded = False
@@ -35,8 +37,9 @@ class GameObject(pg.sprite.Sprite, ABC):
        
         super().__init__()
 
-    def spin(self, turning, ship_rotate_speed) -> None:
+    def spin(self, turning, ship_rotate_speed, slow_turn) -> None:
         # direction > 0 -> clockwise
+        ship_rotate_speed = int(ship_rotate_speed/2) if slow_turn else ship_rotate_speed
         self.heading += ship_rotate_speed * turning
         if self.heading >= 360:
             self.heading -= 360

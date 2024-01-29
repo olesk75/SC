@@ -149,11 +149,12 @@ class Level:
         # Update effect of celestial objects
         for celestial in self.celestials:  # for each planet
             for ship in [self.player, self.enemy]:  # for each ship
+                ship.under_gravity = False
                 if not ship.dead:
                     # Check if we're in range
                     distance = math.sqrt((ship.rect.centerx - celestial.rect.centerx)**2 + (ship.rect.centery - celestial.rect.centery)**2)
                     if  distance < celestial.influence_radius:
-                        # Distance between ship and celestial:
+                        ship.under_gravity = False
                         acceleration = celestial.gravity / (distance ** 2)
 
                         angle_radians = math.atan2(ship.rect.centery - celestial.rect.centery, ship.rect.centerx - celestial.rect.centerx)
@@ -258,6 +259,8 @@ class Level:
         # DEBUG SECTION
         #message = f'vel_x: {self.player.vel_x:.2f}, vel_y: {self.player.vel_y:.2f}, accel: {self.player.accelleration:.2f}'
         message = f'AI attitude: {self.enemy.ai.attitude}'
+        debug(message, x=20, y=60, surface=overlay, color="#ffff00")
+        message = f'AI behavior: {self.enemy.ai.behavior}'
         debug(message, x=20, y=20, surface=overlay, color="#ffff00")
 
         '''

@@ -36,6 +36,7 @@ class Ship(GameObject):
 
         self.accelleration = 0
         self.turning = 0
+        self.slow_turn = False  # used for the AI to do slower turns
 
         self.teleporting = False  # used only for shiw which can teleport
         self.teleport_coords = (False, False)
@@ -211,7 +212,7 @@ class Ship(GameObject):
                    
 
         if not self.dead:
-            self.spin(self.turning, self.turn_speed)
+            self.spin(self.turning, self.turn_speed, self.slow_turn)
 
         
 
