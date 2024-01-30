@@ -11,7 +11,7 @@ class Menu(BaseState):
         self.name = "MENU"
         self.next_state = "GAMEPLAY"
 
-    def render_text(self, index):
+    def render_text(self, index) -> pg.Surface:
         color = pg.Color("red") if index == self.active_index else pg.Color("white")
         return self.font.render(self.options[index], True, color)
 
@@ -21,9 +21,9 @@ class Menu(BaseState):
         return text.get_rect(center=center)
 
     def handle_action(self) -> None:
-        if self.active_index == 0:
+        if self.active_index in (0,1):
             self.done = True
-        elif self.active_index == 1:
+        elif self.active_index == 2:
             self.quit = True
 
     def get_event(self, event) -> None:
@@ -31,9 +31,13 @@ class Menu(BaseState):
             self.quit = True
         elif event.type == pg.KEYUP:
             if event.key == pg.K_UP:
-                self.active_index = 1 if self.active_index <= 0 else 0
+                self.active_index -= 1 
+                if self.active_index < 0:
+                    self.active_index =  2
             elif event.key == pg.K_DOWN:
-                self.active_index = 0 if self.active_index >= 1 else 1
+               self.active_index += 1 
+               if self.active_index > 2:
+                    self.active_index =  0
             elif event.key == pg.K_RETURN:
                 self.handle_action()
 

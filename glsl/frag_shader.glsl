@@ -1,5 +1,10 @@
 #version 330 core
 
+#define FADE_IM_TIME 50
+#define FADE_OUT_TIME 50
+
+#define TELEPORT_EFFECT_RADIUS  0.06
+
 uniform sampler2D u_tex;  // let's the shader sample value from the texture u_tex
 uniform sampler2D u_bg_tex;
 uniform sampler2D u_overlay_tex;
@@ -58,8 +63,8 @@ void main() {
         case 3:
             color = mix(texture(u_bg_tex, uv).rgb, texture(u_tex, uv).rgb, texture(u_tex, uv).a);  // blended textures
 
-            if (u_time < 50) {
-                color.rgb = mix(color.rgb, vec3(0.0, 0.0, 0.0), u_time/50);
+            if (u_time < FADE_OUT_TIME) {
+                color.rgb = mix(color.rgb, vec3(0.0, 0.0, 0.0), u_time/FADE_OUT_TIME);
             } else {
                 color.rgb = vec3(0.0, 0.0, 0.0);
             }
@@ -67,13 +72,13 @@ void main() {
             break;
 
         /*
-        Fade in from black effect 
+        Fade in from black effect, assuming no zoom (using only uv)
         */
         case 4:
             color = mix(texture(u_bg_tex, uv).rgb, texture(u_tex, uv).rgb, texture(u_tex, uv).a);  // blended textures
 
-            if (u_time < 50) {
-                color.rgb = mix(color.rgb, vec3(0.0, 0.0, 0.0), 1.0 - u_time/50);
+            if (u_time < FADE_IM_TIME) {
+                color.rgb = mix(color.rgb, vec3(0.0, 0.0, 0.0), 1.0 - u_time/FADE_IM_TIME);
             } else {
                 color.rgb = vec3(0.0, 0.0, 0.0);
             }
@@ -94,11 +99,11 @@ void main() {
         case 8:
         //uniform vec3 shockParams; // 10.0, 0.8, 0.1  // original 
         //vec3 shockParams = vec3(1.0, 0.4, 0.03); // very subtle
-        vec3 shockParams = vec3(3.0, 0.4, 0.03); // hardcoded for now
+        vec3 shockParams = vec3(3.0, 0.4, TELEPORT_EFFECT_RADIUS); // hardcoded for now
         float time = u_time / 50;
 
-        vec2 texCoord = uv;
-        float distance = distance(uv, effect_center);
+        vec2 texCoord = uv_z;  // we use the zoomed values
+        float distance = distance(uv_z, effect_center);
         if ( (distance <= (time + shockParams.z)) && 
             (distance >= (time - shockParams.z)) ) 
         {
@@ -106,15 +111,18 @@ void main() {
             float powDiff = 0.1 - pow(abs(diff*shockParams.x), 
                                         shockParams.y); 
             float diffTime = diff  * powDiff; 
-            vec2 diffUV = normalize(uv - effect_center); 
-            texCoord = uv + (diffUV * diffTime);
+            vec2 diffUV = normalize(uv_z - effect_center); 
+            texCoord = uv_z + (diffUV * diffTime);
         } 
 
-        // We apply the distortion both foreground and background textures
-        f_color = mix(texture(u_bg_tex, texCoord), texture(u_tex, texCoord), texture(u_tex, texCoord).a);
 
+        foreground = texture(u_tex,         texCoord);
+        overlay    = texture(u_overlay_tex, uv  );  // we don't zoom the overlay
+        foreground_mix = mix(foreground, overlay, overlay.a);  // overlay is added to foreground, with alpha
+        background = bg_effect(u_bg_tex, texCoord);
 
-
+        f_color = mix(background, foreground_mix, foreground_mix.a);  // foreground is added to background, with alpha
+      
         
         break;
        
