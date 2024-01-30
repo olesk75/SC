@@ -230,13 +230,8 @@ class GameGL:
         self.program["u_zoom_x"] = self.state.zoom_x
         self.program["u_zoom_y"] = self.state.zoom_y
 
-        # ic(self.effect_counter)
-
-        # Enable blending for transparency
-        self.ctx.enable(moderngl.BLEND)
-
-        # Triangle strip used to convert our quad_buffer
-        self.render_object.render(mode=moderngl.TRIANGLE_STRIP)
+        self.ctx.enable(moderngl.BLEND)  # Enable blending for transparency
+        self.render_object.render(mode=moderngl.TRIANGLE_STRIP)  # Triangle strip used to convert our quad_buffer
         # -----------------------------------------------------------------------------------------------------------
 
         # We use flip() as we have set the pg.DOUBLEBUF flag in display.set_mode() earlier

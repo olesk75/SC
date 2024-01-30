@@ -6,6 +6,7 @@ from settings import SCREEN_HEIGHT, SCREEN_WIDTH
 from utility.debug import debug
 
 import pygame as pg
+import time
 import math
 from icecream import ic
 import random
@@ -15,7 +16,7 @@ import settings
 class Level:
     def __init__(self) -> None:
         self.number: int
-        self.state = "run"  # alternatives "win" and "loss"
+        self.state = "arriving"  # alternatives are "arriving", "run" and "win" and "loss"
         self.enemyAI_difficulty = 0.5  # float between 0 and 1
 
         self.projectiles_live = 0
@@ -25,6 +26,8 @@ class Level:
         self.start_fadeout = False
         self.teleport_triggered = False  # used to track GLSL effects for teleports
         self.teleport_coords: tuple
+        self.ships_arriving = True  # we start with a ship arrival animation
+        self.arrival_step = 0
 
         self.zoom = 0  # zoom, 1 is closest, 3 furthest out
         self.zoom_x = 0  # zoom coordinates
@@ -96,6 +99,13 @@ class Level:
         )
 
 
+        # DEBUG
+        self.enemy.controllable = False
+        self.player.controllable = False
+        self.enemy.visible = False
+        self.player.visible = False
+
+
         ic("Instancing new level", number)
         self.number = number
 
@@ -106,6 +116,9 @@ class Level:
         # EnemyAI sprite group
         self.enemy_ai_sprites = pg.sprite.GroupSingle()
         self.enemy_ai_sprites.add(self.enemy)
+
+        # Gost effects sprite group
+        self.ghost_sprites = pg.sprite.Group()
 
         # Planets and start and black holes etc.
         self.celestial_sprites = pg.sprite.Group()
@@ -124,6 +137,8 @@ class Level:
         self.sound_win.set_volume(0.5)
         self.sound_win.set_volume(0.5)
 
+        (self.zoom, self.zoom_x, self.zoom_y) = self._set_zoom(self.zoom)
+
     def get_event(self, event) -> str | None:
         self.player.get_event(event)
         if self.state != "run":
@@ -131,9 +146,10 @@ class Level:
 
     # Update all objects
     def update(self) -> None:
-        self.player.update()
         (self.zoom, self.zoom_x, self.zoom_y) = self._set_zoom(self.zoom)
-
+        
+        self.player.update()
+        
         # Updates the players's projectile sprites
         self.player.projectiles.update()
         self.player.engine_trails.update()
@@ -146,32 +162,75 @@ class Level:
 
         self.enemy.ai.update(self.player, self.celestials)
 
-        # Update effect of celestial objects
-        for celestial in self.celestials:  # for each planet
-            for ship in [self.player, self.enemy]:  # for each ship
-                ship.under_gravity = False
-                if not ship.dead:
-                    # Check if we're in range
-                    distance = math.sqrt((ship.rect.centerx - celestial.rect.centerx)**2 + (ship.rect.centery - celestial.rect.centery)**2)
-                    if  distance < celestial.influence_radius:
-                        ship.under_gravity = False
-                        acceleration = celestial.gravity / (distance ** 2)
+        if self.state == 'arriving':
 
-                        angle_radians = math.atan2(ship.rect.centery - celestial.rect.centery, ship.rect.centerx - celestial.rect.centerx)
+            # Animating ship arrival - building sprite group slowly
+            ghost_dist = 15
+            steps = 30
+            if self.arrival_step < steps:
+                for ship in [self.player, self.enemy]:
+                    dx = math.sin(math.radians(ship.heading)) * ((steps - 1) - self.arrival_step) * ghost_dist
+                    dy = math.cos(math.radians(ship.heading)) * ((steps - 1) - self.arrival_step) * ghost_dist
+                    ghost = pg.sprite.Sprite()
+                    ghost.image = ship.image
+                    pg.Surface.set_alpha(ghost.image, self.arrival_step * 10)
+                    ghost.rect = ghost.image.get_rect()
+                    ghost.rect.centerx =  ship.rect.centerx + dx
+                    ghost.rect.centery = ship.rect.centery + dy
+                    if ghost.rect.centery < settings.SCREEN_HEIGHT and ghost.rect.centerx < settings.SCREEN_WIDTH and ghost.rect.centerx * ghost.rect.centerx > 0:
+                        self.ghost_sprites.add(ghost)
 
-                        dx = math.cos(angle_radians) * acceleration
-                        dy = math.sin(angle_radians) * acceleration
+    
+            if self.arrival_step < steps:
+                self.arrival_step += 1
 
-                        # print(f'accel: {acceleration:.2f}, dx: {dx:.2f}, dy: {dy:.2f}')  # for debugging
+            if self.arrival_step == steps:  # all sprites are in the group
+                for sprite in self.ghost_sprites:
+                    alpha = sprite.image.get_alpha()
+                    alpha -= 35
+                    if alpha <= 0: 
+                        sprite.kill()
+                    else:
+                        pg.Surface.set_alpha(sprite.image, alpha)
+                    pass
+        
 
-                        # Impact of gravity is the gravitationaly force divided by the square of the distance
-                        ship.vel_x -= dx
-                        ship.vel_y -= dy
-  
+            # Check if we're done
+            if not len(self.ghost_sprites.sprites()):
+                self.enemy.controllable = True
+                self.player.controllable = True
+                self.enemy.visible = True
+                self.player.visible = True
+                self.start_time = 0
+                #self.ghost_sprites.empty()
+                self.state = 'run'
 
-        # Check collisions
+
+
         if self.state == 'run':
+            # Update effect of celestial objects
+            for celestial in self.celestials:  # for each planet
+                for ship in [self.player, self.enemy]:  # for each ship
+                    ship.under_gravity = False
+                    if not ship.dead:
+                        # Check if we're in range
+                        distance = math.sqrt((ship.rect.centerx - celestial.rect.centerx)**2 + (ship.rect.centery - celestial.rect.centery)**2)
+                        if  distance < celestial.influence_radius:
+                            ship.under_gravity = False
+                            acceleration = celestial.gravity / (distance ** 2)
 
+                            angle_radians = math.atan2(ship.rect.centery - celestial.rect.centery, ship.rect.centerx - celestial.rect.centerx)
+
+                            dx = math.cos(angle_radians) * acceleration
+                            dy = math.sin(angle_radians) * acceleration
+
+                            # print(f'accel: {acceleration:.2f}, dx: {dx:.2f}, dy: {dy:.2f}')  # for debugging
+
+                            # Impact of gravity is the gravitationaly force divided by the square of the distance
+                            ship.vel_x -= dx
+                            ship.vel_y -= dy
+        
+            # Check collisions
             # Celestial collision - we use masks for precision, they are fatal
             for celestial in self.celestials:
                 pg.sprite.spritecollide(celestial, self.player.projectiles, True, pg.sprite.collide_mask)  # type: ignore
@@ -203,17 +262,15 @@ class Level:
                 projectile.kill()  # we remove the projectile
                 self.player.health -= self.enemy.p.damage 
                 self.enemy.hit_other_sound.play()
-                
-            
+                    
 
-            # Ship + ship collisions: bounce-back (with small damage?)
-            if pg.sprite.spritecollide(self.enemy, self.player_sprites, False, pg.sprite.collide_mask):  # type: ignore    
-                (x, y) = self.player.vel_x, self.player.vel_y
-                (self.player.vel_x, self.player.vel_y) = (self.enemy.vel_x, self.enemy.vel_y)  # we swap velocities 
-                (self.enemy.vel_x, self.enemy.vel_y) = (x, y)
-                self.enemy.health -= 100
-                self.player.health -= 100
-
+                # Ship + ship collisions: bounce-back (with small damage?)
+                if pg.sprite.spritecollide(self.enemy, self.player_sprites, False, pg.sprite.collide_mask):  # type: ignore    
+                    (x, y) = self.player.vel_x, self.player.vel_y
+                    (self.player.vel_x, self.player.vel_y) = (self.enemy.vel_x, self.enemy.vel_y)  # we swap velocities 
+                    (self.enemy.vel_x, self.enemy.vel_y) = (x, y)
+                    self.enemy.health -= 100
+                    self.player.health -= 100
 
             # Enemy dead (health zub zero)
             if self.enemy.health <= 0:
@@ -246,13 +303,17 @@ class Level:
                 self.player.explosion_sound.play()
                 self.sound_loss.play()
 
-        if self.player.teleporting or self.enemy.teleporting:
-            self.teleport_triggered = True
-            if self.player.teleporting:
-                self.teleport_coords = self.player.teleport_coords
-            else: 
-                self.teleport_coords = self.enemy.teleport_coords
-            self.player.teleporting = self.enemy.teleporting = False
+            # Ongoing events
+            # A ship is teleporting
+            if self.player.teleporting or self.enemy.teleporting:
+                self.teleport_triggered = True
+                if self.player.teleporting:
+                    self.teleport_coords = self.player.teleport_coords
+                else: 
+                    self.teleport_coords = self.enemy.teleport_coords
+                self.player.teleporting = self.enemy.teleporting = False
+
+        
 
     # Draw all sprite groups + background
     def draw(self, surface, overlay) -> None:
@@ -272,6 +333,11 @@ class Level:
         )
 
         '''
+        Draw ghosts (mostly used for arrival animation)
+        '''
+        self.ghost_sprites.draw(surface)
+
+        '''
         Draw celestial objects
         '''
         self.celestial_sprites.draw(surface)
@@ -280,7 +346,8 @@ class Level:
         Draw all player-related sprites (mind the order!)
         '''
         self.player.engine_trails.draw(surface)
-        self.player_sprites.draw(surface)
+        if self.player.visible:
+            self.player_sprites.draw(surface)
         self.player.projectiles.draw(surface)
 
         # Hit indicators
@@ -292,7 +359,8 @@ class Level:
         '''
         Draw all enemy-related sprites
         '''
-        self.enemy_ai_sprites.draw(surface)
+        if self.enemy.visible:
+            self.enemy_ai_sprites.draw(surface)
         self.enemy.projectiles.draw(surface)
         self.enemy.engine_trails.draw(surface)
 

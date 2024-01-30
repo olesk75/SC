@@ -6,7 +6,7 @@
 #define TELEPORT_EFFECT_RADIUS  0.06
 
 uniform sampler2D u_tex;  // let's the shader sample value from the texture u_tex
-uniform sampler2D u_bg_tex;
+uniform sampler2D u_bg_tex;  // samplers read data from assigned textures
 uniform sampler2D u_overlay_tex;
 
 uniform float u_screenHeight;

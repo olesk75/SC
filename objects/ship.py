@@ -33,6 +33,8 @@ class Ship(GameObject):
         self.last_fire = 0
         self.last_energy_tick = 0
         self.last_engine_trail = 0
+        self.controllable = True  # mostly used for arrival anomation
+        self.visible = True  # mostly used for arrival anomation
 
         self.accelleration = 0
         self.turning = 0
@@ -153,7 +155,7 @@ class Ship(GameObject):
         return super().trigger_shield()
 
     def fire_special(self) -> None:
-        if not self.dead:
+        if not self.dead and self.controllable:
             match self.ship_type:
                 case "martian":  # Teleport
                     self.x_pos = random.randint(100, SCREEN_WIDTH - 100)
@@ -176,7 +178,7 @@ class Ship(GameObject):
 
         
         # Accellerating the ship
-        if self.accelleration > 0 and not self.dead:  # the ship is accelerating in the direciton of its heading
+        if self.accelleration > 0 and not self.dead and self.controllable:  # the ship is accelerating in the direciton of its heading
             # The accelleration happens in the direction of the self.heading
             x_accel = y_accel = 0
             if self.vel_x < self.max_velocity:
@@ -197,7 +199,7 @@ class Ship(GameObject):
 
 
         # If we're accelerating...
-        if self.accelleration > 0: 
+        if self.accelleration > 0 and self.controllable: 
             # Add engine trails 
             if time.time() - self.last_engine_trail > 0.1:
                 et = EngineTrail(self.x_pos, self.y_pos, "regular")
@@ -211,16 +213,13 @@ class Ship(GameObject):
             self.rect_orig = self.image_orig.get_rect()  # TODO: every update????
                    
 
-        if not self.dead:
+        if not self.dead and self.controllable:
             self.spin(self.turning, self.turn_speed, self.slow_turn)
 
-        
 
         # Rotation
         self.image, self.rect = self._rotatesprite(self.image_orig, self.rect_orig, self.heading)
         self.mask = pg.mask.from_surface(self.image)
-
-        # TODO: rework this to have momentum
 
         # Movement
         self.x_pos += self.vel_x / 3
@@ -238,8 +237,6 @@ class Ship(GameObject):
             
         if self.vel_y < 0 and self.y_pos <= 0: 
             self.y_pos += settings.SCREEN_HEIGHT
-
-        #ic(dx, self.x_pos, self.rect.centerx)
         
 
         # Position 
@@ -256,6 +253,6 @@ class Ship(GameObject):
                 self.energy = self.max_energy
 
         # Self firing
-        if self.firing and not self.dead:
+        if self.firing and not self.dead and self.controllable:
             self.fire()
 
