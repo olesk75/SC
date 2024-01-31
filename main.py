@@ -3,6 +3,7 @@
 
 import sys
 import pygame as pg
+from dataclasses import dataclass
 
 from icecream import ic
 
@@ -14,8 +15,16 @@ from states.splash import Splash
 from gameGL import GameGL
 import settings
 
+@dataclass()
+class GameConfig:
+    """
+    Game configuration
+    """
+    FPS = settings.FPS
+    SHOW_FPS = settings.SHOW_FPS
+    window_size_xy = None  # only populated in GameGL
 
-FPS = settings.FPS
+config = GameConfig
 
 # pg setup
 # Initializing
@@ -24,16 +33,15 @@ pg.init()
 pg.mixer.init()
 pg.mixer.set_num_channels(16)
 
-
 states = {
-    "MENU": Menu(),
-    "SPLASH": Splash(),
-    "READY": Ready(),
-    "GAMEPLAY": GamePlay(),
-    "GAME_OVER": GameOver(),
+    "MENU": Menu(config),
+    "SPLASH": Splash(config),
+    "READY": Ready(config),
+    "GAMEPLAY": GamePlay(config),
+    "GAME_OVER": GameOver(config),
 }
 
-game = GameGL(states, "SPLASH", FPS)
+game = GameGL(states, "SPLASH", config)
 game.run()
 
 pg.mixer.fadeout(1000)

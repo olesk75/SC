@@ -13,13 +13,14 @@ class GamePlay(BaseState):
     GamePlay class is mostly just an abstract class to be subclassed
     However, it does keep track of triggered GLSL effects and manage their timing
     '''
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, config) -> None:
+        super().__init__(config)
+        self.config = config
 
     def startup(self, fight_status) -> None:
         self.fight_status = fight_status
         self.current_level = 1
-        self.level = Level()
+        self.level = Level(self.config)
         self.level.startup(self.current_level)
         self.name = "GAMEPLAY"
         self.next_state = "READY"

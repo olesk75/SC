@@ -5,8 +5,8 @@ import time
 
 
 class Splash(BaseState):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, config) -> None:
+        super().__init__(config)
 
         self.start_time = time.time()
         self.next_state = "MENU"
@@ -19,7 +19,7 @@ class Splash(BaseState):
         if time.time() > self.start_time + 1:
             self.done = True
 
-    def draw(self, surface, overlay) -> None:
+    def draw(self, surface, _) -> None:
         self.title_rect = self.title.get_rect(center=surface.get_rect().center)
         surface.fill((0,0,0,0))
         surface.blit(self.title, self.title_rect)

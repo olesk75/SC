@@ -1,13 +1,11 @@
 from .base import BaseState
-from settings import SCREEN_HEIGHT, SCREEN_WIDTH
-
 
 import pygame as pg
 
 
 class GameOver(BaseState):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, config) -> None:
+        super().__init__(config)
         self.active_index = 0
         self.options = ["Start Game Player vs AI", "Start Game Player vs Player", "Quit Game"]
         self.name = "GAMEOVER"
@@ -48,7 +46,7 @@ class GameOver(BaseState):
 
     def draw(self, surface) -> None:
         win_text = self.font.render(f"You WIN!", True, (255, 255, 255))
-        surface.blit(win_text, ((int(SCREEN_WIDTH / 2) - 30, 100)))
+        surface.blit(win_text, ((int(self.config.window_size_xy / 2) - 30, 100)))
 
         for index, _ in enumerate(self.options):
             text_render = self.render_text(index)

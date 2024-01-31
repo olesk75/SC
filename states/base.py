@@ -4,7 +4,8 @@ from abc import ABC, abstractmethod
 
 
 class BaseState:
-    def __init__(self) -> None:
+    def __init__(self, config) -> None:
+        self.config = config
         self.done = False
         self.quit = False
         self.next_state = None

@@ -8,9 +8,6 @@ from icecream import ic
 from dataclasses import dataclass
 
 
-import settings
-
-
 @dataclass()
 class FightStatus:
     """
@@ -36,7 +33,8 @@ class GameGL:
     The run() method is looping until the game exits
     """
 
-    def __init__(self, states, start_state, FPS) -> None:
+    def __init__(self, states, start_state, config) -> None:
+        self.config = config
         self.done = False
         self.previous_effect = 0
         self.effect_counter = 0
@@ -44,27 +42,28 @@ class GameGL:
         # Resolution and screen setup
         current_screen = pg.display.Info()
         monitor_res = (current_screen.current_w, current_screen.current_h)
-        width, height = settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT
 
-        scale = (current_screen.current_h - 100) / settings.SCREEN_HEIGHT
-        scale = 1  # TODO: fix scaling. Right now it breaks uv coords for the frag shader
 
-        ic("Screen resolution", width, height, monitor_res)
+        #width, height = settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT
+
+        #scale = (current_screen.current_h - 100) / settings.SCREEN_HEIGHT
+        #scale = 1  # TODO: fix scaling. Right now it breaks uv coords for the frag shader
+
+        ic("Screen resolution", monitor_res)
+        window_size_xy = int(min(monitor_res) * 0.9)  # window will be square and 90% of shortest screen dimension (for window borders etc.)
+        self.config.window_size_xy = window_size_xy  # this allows main to access this for the config instance
 
         # Tons of stuff to prevent Macs from freaking out
         pg.display.gl_set_attribute(pg.GL_CONTEXT_MAJOR_VERSION, 3)
         pg.display.gl_set_attribute(pg.GL_CONTEXT_MINOR_VERSION, 3)
-        pg.display.gl_set_attribute(
-            pg.GL_CONTEXT_PROFILE_MASK, pg.GL_CONTEXT_PROFILE_CORE)
-        pg.display.gl_set_attribute(
-            pg.GL_CONTEXT_FORWARD_COMPATIBLE_FLAG, True)
-        os.environ["SDL_VIDEO_WINDOW_POS"] = "%d,%d" % (
-            10, 10)  # We place scaled window top left
+        pg.display.gl_set_attribute(pg.GL_CONTEXT_PROFILE_MASK, pg.GL_CONTEXT_PROFILE_CORE)
+        pg.display.gl_set_attribute(pg.GL_CONTEXT_FORWARD_COMPATIBLE_FLAG, True)
+        os.environ["SDL_VIDEO_WINDOW_POS"] = "%d,%d" % (10, 10)  # We place scaled window top left
 
         # flags = pg.FULLSCREEN | pg.HWSURFACE | pg.SCALED
-        self.screen = pg.display.set_mode((width * scale, height * scale), pg.OPENGL | pg.DOUBLEBUF)
-        self.game_surface = pg.Surface((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT), pg.SRCALPHA)
-        self.game_overlay = pg.Surface((settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT), pg.SRCALPHA)
+        self.screen = pg.display.set_mode((window_size_xy, window_size_xy), pg.OPENGL | pg.DOUBLEBUF)
+        self.game_surface = pg.Surface((window_size_xy, window_size_xy), pg.SRCALPHA)
+        self.game_overlay = pg.Surface((window_size_xy, window_size_xy), pg.SRCALPHA)
 
 
         """
@@ -127,8 +126,8 @@ class GameGL:
         # Initial values
         self.program["u_effect"] = 1
         self.program["u_time"] = time.time()
-        self.program["u_screenWidth"] = settings.SCREEN_WIDTH
-        self.program["u_screenHeight"] = settings.SCREEN_HEIGHT
+        self.program["u_screenWidth"] = window_size_xy
+        self.program["u_screenHeight"] = window_size_xy
 
         # Image background loaded as completely separate texture (same size as game texture)
         # bg_surf = pg.image.load("assets/backgrounds/Starfields/Starfield 3 - 1024x1024.png").convert_alpha()
@@ -141,7 +140,6 @@ class GameGL:
 
         self.start_time = 0
         self.clock = pg.time.Clock()
-        self.FPS = FPS
         self.states = states
         self.state_name = start_state
         self.state = self.states[self.state_name]
@@ -201,7 +199,7 @@ class GameGL:
         # call the update function in active state (on game_surface, not the screen)
         self.state.draw(self.game_surface, self.game_overlay)
 
-        if settings.SHOW_FPS:
+        if self.config.SHOW_FPS:
             fps_text = self.font.render(
                 f"FPS: {self.clock.get_fps():.2f}", True, (255, 255, 0))
             self.game_overlay.blit(fps_text, (10, 100))
@@ -240,7 +238,7 @@ class GameGL:
         frame_tex.release()  # free up VRAM - required!
 
         self.effect_counter += 1  # increases 60 per second
-        self.clock.tick(self.FPS)
+        self.clock.tick(self.config.FPS)
 
     """ 
     This is the main game loop
@@ -248,7 +246,7 @@ class GameGL:
 
     def run(self) -> None:
         while not self.done:
-            self.clock.tick(self.FPS)
+            self.clock.tick(self.config.FPS)
             self.event_loop()
             self.update()
             self.draw()

@@ -1,11 +1,10 @@
 from .base import BaseState
-
 import pygame as pg
 
 
 class Menu(BaseState):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, config) -> None:
+        super().__init__(config)
         self.active_index = 0
         self.options = ["Start Game Player vs AI", "Start Game Player vs Player", "Quit Game"]
         self.name = "MENU"

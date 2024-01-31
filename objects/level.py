@@ -1,20 +1,17 @@
-from objects.players import Player, EnemyAI
-from objects.gameinfo import GameInfo
-from objects.gameobject import Planet
-from settings import SCREEN_HEIGHT, SCREEN_WIDTH
-
-from utility.debug import debug
-
 import pygame as pg
-import time
 import math
 from icecream import ic
 import random
-import settings
+
+from objects.players import Player, EnemyAI
+from objects.gameinfo import GameInfo
+from objects.gameobject import Planet
+from utility.debug import debug
 
 
 class Level:
-    def __init__(self) -> None:
+    def __init__(self, config) -> None:
+        self.config = config
         self.number: int
         self.state = "arriving"  # alternatives are "arriving", "run" and "win" and "loss"
         self.enemyAI_difficulty = 0.5  # float between 0 and 1
@@ -49,8 +46,8 @@ class Level:
         
         min_distance = 150  # pixels minumum separation
         while len(locations) < number:
-            x = random.randint(int(SCREEN_WIDTH * 0.1), int(SCREEN_WIDTH * 0.9))  # avoiding the edges
-            y = random.randint(int(SCREEN_HEIGHT * 0.1), int(SCREEN_HEIGHT * 0.9))
+            x = random.randint(int(self.config.window_size_xy * 0.1), int(self.config.window_size_xy * 0.9))  # avoiding the edges
+            y = random.randint(int(self.config.window_size_xy * 0.1), int(self.config.window_size_xy * 0.9))
 
             distance = lambda x1, y1, x2, y2: ((x1 - x2)**2 + (y1 - y2)**2)**0.5
         
@@ -61,10 +58,10 @@ class Level:
     
     def _set_zoom(self, zoom) -> tuple[int, int, int]:
         distance = math.sqrt((self.player.rect.centerx - self.enemy.rect.centerx)**2 + (self.player.rect.centery - self.enemy.rect.centery)**2) # type: ignore
-        if distance > SCREEN_WIDTH/3:
+        if distance > self.config.window_size_xy/3:
             if zoom != 3:
                 zoom = 3
-        elif distance > SCREEN_WIDTH/5.8:
+        elif distance > self.config.window_size_xy/5.8:
             if zoom != 2:
                 zoom = 2
         else:
@@ -81,7 +78,7 @@ class Level:
         '''
         Set up players and all sprite groups
         '''
-        self.game_info = GameInfo()
+        self.game_info = GameInfo(self.config)
 
         random_locations = self._random_location(10)  # generate 10 random locations, more than 100 pixels apart
 
@@ -89,6 +86,7 @@ class Level:
             random_locations.pop(),
             heading=random.random() * 359,
             ship_type="martian",
+            config=self.config
         )
 
         self.enemy = EnemyAI(
@@ -96,6 +94,7 @@ class Level:
             heading=random.random() * 359,
             ship_type="plutonian",
             skill=self.enemyAI_difficulty,
+            config = self.config
         )
 
 
@@ -177,7 +176,7 @@ class Level:
                     ghost.rect = ghost.image.get_rect()
                     ghost.rect.centerx =  ship.rect.centerx + dx
                     ghost.rect.centery = ship.rect.centery + dy
-                    if ghost.rect.centery < settings.SCREEN_HEIGHT and ghost.rect.centerx < settings.SCREEN_WIDTH and ghost.rect.centerx * ghost.rect.centerx > 0:
+                    if ghost.rect.centery < self.config.window_size_xy and ghost.rect.centerx < self.config.window_size_xy and ghost.rect.centerx * ghost.rect.centerx > 0:
                         self.ghost_sprites.add(ghost)
 
     
@@ -404,7 +403,7 @@ class Level:
                 self.start_fadeout = True
 
         self.framecounter += 1  # this is the last thing to happen in this module for each new frame
-        if self.framecounter == settings.FPS:
+        if self.framecounter == self.config.FPS:
             self.framecounter = 0
                      
 

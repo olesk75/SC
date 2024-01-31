@@ -8,8 +8,8 @@ import math
 
 
 class EnemyPlayer(Ship):
-    def __init__(self, x_pos, y_pos, direction, velocity, heading, ship_type) -> None:
-        super().__init__(x_pos, y_pos, direction, velocity, heading, ship_type)
+    def __init__(self, x_pos, y_pos, direction, velocity, heading, ship_type, config) -> None:
+        super().__init__(x_pos, y_pos, direction, velocity, heading, ship_type, config)
         pass
 
 
@@ -18,23 +18,23 @@ class EnemyAI(Ship):
     Similar to Player() class, but with additional skill
     """
 
-    def __init__(self, pos, heading, ship_type, skill) -> None:
+    def __init__(self, pos, heading, ship_type, skill, config) -> None:
         velocity = 0
         direction = 0
         (x_pos, y_pos) = pos
-        super().__init__(x_pos, y_pos, direction, velocity, heading, ship_type)
+        super().__init__(x_pos, y_pos, direction, velocity, heading, ship_type, config)
         self.projectiles = pg.sprite.Group()
         self.engine_trails = pg.sprite.Group()
 
-        self.ai = AI(self, skill=skill, ship_type=ship_type)
+        self.ai = AI(self, skill=skill, ship_type=ship_type, config=config)
 
 
 class Player(Ship):
-    def __init__(self, pos, heading, ship_type) -> None:
+    def __init__(self, pos, heading, ship_type, config) -> None:
         velocity = 0
         direction = 0
         (x_pos, y_pos) = pos
-        super().__init__(x_pos, y_pos, direction, velocity, heading, ship_type)
+        super().__init__(x_pos, y_pos, direction, velocity, heading, ship_type, config)
         self.projectiles = pg.sprite.Group()
         self.engine_trails = pg.sprite.Group()
 

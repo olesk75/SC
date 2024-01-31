@@ -1,11 +1,9 @@
 from .gameobject import GameObject, Projectile, EngineTrail
-from settings import SCREEN_HEIGHT, SCREEN_WIDTH
 
 import pygame as pg
 import time
 import math
 import random
-import settings
 
 
 class Ship(GameObject):
@@ -14,12 +12,13 @@ class Ship(GameObject):
 
     """
 
-    def __init__(self, x_pos, y_pos, direction, velocity, heading, ship_type) -> None:
+    def __init__(self, x_pos, y_pos, direction, velocity, heading, ship_type, config) -> None:
         # Placeholders overridden by child objects
         self.projectiles = pg.sprite.Group()
         self.engine_trails = pg.sprite.Group()
 
         self.ship_type = ship_type
+        self.config = config
         self.max_velocity = 10  # TODO: read from ship config
         self.min_velocity = -5  # TODO: read from ship config
 
@@ -57,8 +56,8 @@ class Ship(GameObject):
                 self.max_velocity = 10
                 self.max_energy = 1000
                 self.turn_speed = 5
-                self.image_ship = pg.image.load("assets/ships/martian_2.png").convert_alpha()
-                self.image_engines = pg.image.load("assets/ships/martian_2-engines.png").convert_alpha()
+                self.image_ship = pg.image.load("assets/ships/martian.png").convert_alpha()
+                self.image_engines = pg.image.load("assets/ships/martian-engines.png").convert_alpha()
                 self.special = "teleport"
                 self.fire_sound = pg.mixer.Sound("assets/sounds/shot_5.wav")
                 self.fire_sound.set_volume(0.9)
@@ -158,8 +157,8 @@ class Ship(GameObject):
         if not self.dead and self.controllable:
             match self.ship_type:
                 case "martian":  # Teleport
-                    self.x_pos = random.randint(100, SCREEN_WIDTH - 100)
-                    self.y_pos = random.randint(100, SCREEN_HEIGHT - 100)
+                    self.x_pos = random.randint(100, self.config.window_size_xy - 100)
+                    self.y_pos = random.randint(100, self.config.window_size_xy - 100)
                     self.teleporting = True
                     self.teleport_coords = (self.x_pos, self.y_pos)
                     self.special_sound.play()
@@ -226,17 +225,17 @@ class Ship(GameObject):
         self.y_pos += self.vel_y / 3
         
         # We show up on the other side if we hit the edges
-        if self.vel_x > 0 and self.x_pos >= settings.SCREEN_WIDTH: 
-            self.x_pos -= settings.SCREEN_WIDTH
+        if self.vel_x > 0 and self.x_pos >= self.config.window_size_xy: 
+            self.x_pos -= self.config.window_size_xy
             
         if self.vel_x < 0 and self.x_pos <= 0: 
-            self.x_pos += settings.SCREEN_WIDTH
+            self.x_pos += self.config.window_size_xy
        
-        if self.vel_y > 0 and self.y_pos >= settings.SCREEN_HEIGHT: 
-            self.y_pos -= settings.SCREEN_HEIGHT
+        if self.vel_y > 0 and self.y_pos >= self.config.window_size_xy: 
+            self.y_pos -= self.config.window_size_xy
             
         if self.vel_y < 0 and self.y_pos <= 0: 
-            self.y_pos += settings.SCREEN_HEIGHT
+            self.y_pos += self.config.window_size_xy
         
 
         # Position 

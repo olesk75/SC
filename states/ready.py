@@ -3,12 +3,11 @@ from icecream import ic
 
 from .base import BaseState
 from objects.ship import Ship
-from settings import SCREEN_HEIGHT, SCREEN_WIDTH
 
 
 class Ready(BaseState):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, config) -> None:
+        super().__init__(config)
         self.active_index = 0
         self.options = ["Start Game Player vs AI", "Start Game Player vs Player", "Quit Game"]
         self.name = "READY"
@@ -23,20 +22,20 @@ class Ready(BaseState):
     def startup(self, fight_status) -> None:
         self.fight_status = fight_status
 
-        y_pos = int(SCREEN_HEIGHT * 0.4)
+        y_pos = int(self.config.window_size_xy * 0.4)
         height = 128
         width = height
 
-        x1_pos = int(SCREEN_WIDTH * 0.25)
-        x2_pos = SCREEN_WIDTH - x1_pos
+        x1_pos = int(self.config.window_size_xy * 0.25)
+        x2_pos = self.config.window_size_xy - x1_pos
 
         center_x1 = x1_pos + width / 2
         center_x2 = x2_pos + width / 2 - width
 
         center_y1 = center_y2 = y_pos + height / 2
 
-        ship1 = Ship(center_x1, center_y1, 180, 0, 180, self.fight_status.p1_ship)
-        ship2 = Ship(center_x2, center_y2, 180, 0, 180, self.fight_status.ai_ship)
+        ship1 = Ship(center_x1, center_y1, 180, 0, 180, self.fight_status.p1_ship, self.config)
+        ship2 = Ship(center_x2, center_y2, 180, 0, 180, self.fight_status.ai_ship, self.config)
         self.ship_group = pg.sprite.Group()
 
         self.ship_group.add(ship1)
@@ -56,12 +55,12 @@ class Ready(BaseState):
                 pg.mixer.stop()
 
     def draw_ships(self, surface) -> None:
-        y_pos = int(SCREEN_HEIGHT * 0.4)
+        y_pos = int(self.config.window_size_xy * 0.4)
         height = 128
         width = height
 
-        x1_pos = int(SCREEN_WIDTH * 0.25)
-        x2_pos = SCREEN_WIDTH - x1_pos
+        x1_pos = int(self.config.window_size_xy * 0.25)
+        x2_pos = self.config.window_size_xy - x1_pos
 
         pg.draw.rect(surface, pg.Color("white"), pg.Rect(x1_pos, y_pos, height, width))
         pg.draw.rect(surface, pg.Color("white"), pg.Rect(x2_pos - width, y_pos, height, width))
@@ -74,7 +73,7 @@ class Ready(BaseState):
         self.ship_group.draw(surface)
 
     def draw(self, surface, overlay) -> None:
-        middle = int(SCREEN_WIDTH / 2)
+        middle = int(self.config.window_size_xy / 2)
 
         surface.fill((0,0,0,0))  # reset surface with full alpha
         self.draw_ships(surface)
@@ -95,13 +94,13 @@ class Ready(BaseState):
         else:
             t_result = self.font_very_large.render(f"YOU LOSE!", True, pg.Color("white"))
 
-        t_result_x = int(SCREEN_WIDTH / 2) - int(t_result.get_width() / 2)
-        t_result_y = int(SCREEN_HEIGHT * 0.1)
+        t_result_x = int(self.config.window_size_xy / 2) - int(t_result.get_width() / 2)
+        t_result_y = int(self.config.window_size_xy * 0.1)
 
         # Print Ready to go again?
         t_top = self.font.render(f"Ready to go again?", True, pg.Color("white"))
-        t_top_x = int(SCREEN_WIDTH / 2) - int(t_top.get_width() / 2)
-        t_top_y = int(SCREEN_HEIGHT * 0.3)
+        t_top_x = int(self.config.window_size_xy / 2) - int(t_top.get_width() / 2)
+        t_top_y = int(self.config.window_size_xy * 0.3)
 
         # Print win/loss status
         t_wins = self.font.render(
@@ -109,8 +108,8 @@ class Ready(BaseState):
             True,
             pg.Color("white"),
         )
-        t_wins_x = int(SCREEN_WIDTH / 2) - int(t_wins.get_width() / 2 + SCREEN_WIDTH * 0.12)
-        t_wins_y = int(SCREEN_HEIGHT * 0.6)
+        t_wins_x = int(self.config.window_size_xy / 2) - int(t_wins.get_width() / 2 + self.config.window_size_xy * 0.12)
+        t_wins_y = int(self.config.window_size_xy * 0.6)
 
         # Print leader
         t_lead = self.font.render(
@@ -118,13 +117,13 @@ class Ready(BaseState):
             True,
             pg.Color("white"),
         )
-        t_lead_x = int(SCREEN_WIDTH / 2) - int(t_wins.get_width() / 2 + SCREEN_WIDTH * 0.124)
-        t_lead_y = int(SCREEN_HEIGHT * 0.65)
+        t_lead_x = int(self.config.window_size_xy / 2) - int(t_wins.get_width() / 2 + self.config.window_size_xy * 0.124)
+        t_lead_y = int(self.config.window_size_xy * 0.65)
 
         # Print explainer
         t_explainer = self.font.render(f"FIRST TO 10 WINS OR LEADING BY 3 WINS!", True, pg.Color("white"))
         t_explainer_x = middle - int(t_explainer.get_width()) / 2
-        t_explainer_y = int(SCREEN_HEIGHT * 0.8)
+        t_explainer_y = int(self.config.window_size_xy * 0.8)
 
         self.gray_tone += self.color_change
         if self.gray_tone >= 255 - self.color_change or self.gray_tone + self.color_change <= 0:
@@ -137,7 +136,7 @@ class Ready(BaseState):
             pg.Color(self.gray_tone, self.gray_tone, self.gray_tone),
         )
         t_continue_x = middle - int(t_continue.get_width()) / 2
-        t_continue_y = int(SCREEN_HEIGHT * 0.9)
+        t_continue_y = int(self.config.window_size_xy * 0.9)
 
         surface.blit(t_result, (t_result_x, t_result_y))
         surface.blit(t_top, (t_top_x, t_top_y))

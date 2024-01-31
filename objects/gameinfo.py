@@ -1,12 +1,9 @@
-from objects.players import Player, EnemyAI
-from settings import SCREEN_HEIGHT, SCREEN_WIDTH
-
 import pygame as pg
-from icecream import ic
 
 
 class GameInfo:
-    def __init__(self) -> None:
+    def __init__(self, config) -> None:
+        self.config = config
         self.font = pg.font.Font(None, 24)
 
     # Set up players and all sprite groups
@@ -36,9 +33,9 @@ class GameInfo:
         p2_text2 = self.font.render(f"{p2_health}", True, (255, 255, 255))
         p2_text3 = self.font.render(f"{p2_energy}", True, (255, 255, 255))
 
-        surface.blit(p1_text1, ((int(SCREEN_WIDTH * 0.15), int(SCREEN_HEIGHT * 0.92))))
-        surface.blit(p1_text2, ((int(SCREEN_WIDTH * 0.15), int(SCREEN_HEIGHT * 0.95))))
-        surface.blit(p1_text3, ((int(SCREEN_WIDTH * 0.15), int(SCREEN_HEIGHT * 0.98))))
-        surface.blit(p2_text1, ((int(SCREEN_WIDTH * 0.85), int(SCREEN_HEIGHT * 0.92))))
-        surface.blit(p2_text2, ((int(SCREEN_WIDTH * 0.85), int(SCREEN_HEIGHT * 0.95))))
-        surface.blit(p2_text3, ((int(SCREEN_WIDTH * 0.85), int(SCREEN_HEIGHT * 0.98))))
+        surface.blit(p1_text1, ((int(self.config.window_size_xy * 0.15), int(self.config.window_size_xy * 0.92))))
+        surface.blit(p1_text2, ((int(self.config.window_size_xy * 0.15), int(self.config.window_size_xy * 0.95))))
+        surface.blit(p1_text3, ((int(self.config.window_size_xy * 0.15), int(self.config.window_size_xy * 0.98))))
+        surface.blit(p2_text1, ((int(self.config.window_size_xy * 0.85), int(self.config.window_size_xy * 0.92))))
+        surface.blit(p2_text2, ((int(self.config.window_size_xy * 0.85), int(self.config.window_size_xy * 0.95))))
+        surface.blit(p2_text3, ((int(self.config.window_size_xy * 0.85), int(self.config.window_size_xy * 0.98))))
