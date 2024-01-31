@@ -43,15 +43,12 @@ class GameGL:
         current_screen = pg.display.Info()
         monitor_res = (current_screen.current_w, current_screen.current_h)
 
-
-        #width, height = settings.SCREEN_WIDTH, settings.SCREEN_HEIGHT
-
-        #scale = (current_screen.current_h - 100) / settings.SCREEN_HEIGHT
-        #scale = 1  # TODO: fix scaling. Right now it breaks uv coords for the frag shader
-
         ic("Screen resolution", monitor_res)
         window_size_xy = int(min(monitor_res) * 0.9)  # window will be square and 90% of shortest screen dimension (for window borders etc.)
         self.config.window_size_xy = window_size_xy  # this allows main to access this for the config instance
+
+        # DEBUG OVERRIDE FOR PERF TESTING
+        #self.config.window_size_xy = 800
 
         # Tons of stuff to prevent Macs from freaking out
         pg.display.gl_set_attribute(pg.GL_CONTEXT_MAJOR_VERSION, 3)
@@ -61,9 +58,9 @@ class GameGL:
         os.environ["SDL_VIDEO_WINDOW_POS"] = "%d,%d" % (10, 10)  # We place scaled window top left
 
         # flags = pg.FULLSCREEN | pg.HWSURFACE | pg.SCALED
-        self.screen = pg.display.set_mode((window_size_xy, window_size_xy), pg.OPENGL | pg.DOUBLEBUF)
-        self.game_surface = pg.Surface((window_size_xy, window_size_xy), pg.SRCALPHA)
-        self.game_overlay = pg.Surface((window_size_xy, window_size_xy), pg.SRCALPHA)
+        self.screen = pg.display.set_mode((self.config.window_size_xy, self.config.window_size_xy), pg.OPENGL | pg.DOUBLEBUF)
+        self.game_surface = pg.Surface((self.config.window_size_xy, self.config.window_size_xy), pg.SRCALPHA)
+        self.game_overlay = pg.Surface((self.config.window_size_xy, self.config.window_size_xy), pg.SRCALPHA)
 
 
         """
@@ -126,12 +123,13 @@ class GameGL:
         # Initial values
         self.program["u_effect"] = 1
         self.program["u_time"] = time.time()
-        self.program["u_screenWidth"] = window_size_xy
-        self.program["u_screenHeight"] = window_size_xy
+        self.program["u_screenWidth"] = self.config.window_size_xy
+        self.program["u_screenHeight"] = self.config.window_size_xy
 
         # Image background loaded as completely separate texture (same size as game texture)
         # bg_surf = pg.image.load("assets/backgrounds/Starfields/Starfield 3 - 1024x1024.png").convert_alpha()
         bg_surf = pg.image.load("assets/backgrounds/Blue Nebula/Blue Nebula 8 - 1024x1024.png").convert_alpha()
+        bg_surf = pg.transform.scale(bg_surf, (self.config.window_size_xy, self.config.window_size_xy))
         self.bg_tex = self.surf_to_texture(bg_surf)
         self.bg_tex.use(0)
         """

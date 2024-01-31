@@ -63,6 +63,8 @@ Run the program using the following command:
 python main.py
 ```
 
+Use <kbd>**left**</kbd> <kbd>**right**</kbd> <kbd>**up**</kbd> to navigate, left <kbd>**shift**</kbd> to teleport and left <kbd>**ctrl**</kbd> to fire. 
+
 ### License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
