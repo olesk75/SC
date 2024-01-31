@@ -36,25 +36,32 @@ These instructions will help you get a copy of the project up and running on you
     ```
 
 4. **Activate the virtual environment:**
+
 On Windows:
 
-    ```bash
-    .\venv\Scripts\activate
-    ```
+```dos
+.\venv\Scripts\activate
+```
 
 On Unix or MacOS:
-    ```bash
-    source venv/bin/activate
-    ```
+
+```bash
+source venv/bin/activate
+```
+
 Install requirements:
-    ```bash
-    pip install -r requirements.txt
-    ```
-Usage
+
+```bash
+pip install -r requirements.txt
+```
+
+### Usage
+
 Run the program using the following command:
-    ```bash
-    python main.py
-    ```
+
+```bash
+python main.py
+```
 
 ### License
 
