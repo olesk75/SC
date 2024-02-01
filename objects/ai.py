@@ -101,12 +101,12 @@ class AI:
         if self.ai.under_gravity:
             ic('PANINC')
 
-        # Adjust attitudes
-        if self.ai.energy < self.ai.max_energy * 0.1:  # less than 10% energy
-            self.attitude.remove('hunt')
-            self.attitude.append('flee')
-        else: 
-            pass
+        # # Adjust attitudes
+        # if self.ai.energy < self.ai.max_energy * 0.1:  # less than 10% energy
+        #     self.attitude.remove('aggressive')
+        #     self.attitude.append('flee')
+        # else: 
+        #     pass
 
 
 

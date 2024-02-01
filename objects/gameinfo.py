@@ -1,7 +1,7 @@
 import pygame as pg
 
 
-class GameInfo:
+class GameInfoOverlay:
     def __init__(self, config) -> None:
         self.config = config
         self.font = pg.font.Font(None, 24)

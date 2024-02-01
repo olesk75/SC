@@ -2,7 +2,6 @@
 
 #define FADE_IM_TIME 50
 #define FADE_OUT_TIME 50
-
 #define TELEPORT_EFFECT_RADIUS  0.06
 
 uniform sampler2D u_tex;  // let's the shader sample value from the texture u_tex

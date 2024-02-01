@@ -6,8 +6,8 @@ from objects.ship import Ship
 
 
 class Ready(BaseState):
-    def __init__(self, config) -> None:
-        super().__init__(config)
+    def __init__(self, ) -> None:
+        super().__init__()
         self.active_index = 0
         self.options = ["Start Game Player vs AI", "Start Game Player vs Player", "Quit Game"]
         self.name = "READY"
@@ -19,8 +19,9 @@ class Ready(BaseState):
         self.color_change = 10
         self.gray_tone = 128
 
-    def startup(self, fight_status) -> None:
+    def startup(self, fight_status, config) -> None:
         self.fight_status = fight_status
+        self.config = config
 
         y_pos = int(self.config.window_size_xy * 0.4)
         height = 128

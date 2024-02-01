@@ -5,22 +5,6 @@ import os
 import pygame as pg
 from pathlib import Path
 from icecream import ic
-from dataclasses import dataclass
-
-
-@dataclass()
-class FightStatus:
-    """
-    Dataclass for state of game
-    """
-
-    p1_ship: str
-    ai_ship: str
-
-    win: bool = False
-
-    p1_wins: int = 0
-    ai_wins: int = 0
 
 
 class GameGL:
@@ -38,6 +22,15 @@ class GameGL:
         self.done = False
         self.previous_effect = 0
         self.effect_counter = 0
+        self.start_time = 0
+        self.clock = pg.time.Clock()
+        self.states = states
+        self.state_name = start_state
+        self.state = self.states[self.state_name]
+        self.font = pg.font.Font("freesansbold.ttf", 32)
+
+        self.fight_status = None  # only gets defined in the menu
+
 
         # Resolution and screen setup
         current_screen = pg.display.Info()
@@ -78,23 +71,10 @@ class GameGL:
             data=array(
                 "f",
                 [  # 'f' mean float
-                    -1.0,
-                    1.0,
-                    0.0,
-                    # top left vertex coords (-1.0, 1.0) and top left uv coords (0.0.)
-                    0.0,
-                    1.0,
-                    1.0,
-                    1.0,
-                    0.0,  # top right
-                    -1.0,
-                    -1.0,
-                    0.0,
-                    1.0,  # bottom left
-                    1.0,
-                    -1.0,
-                    1.0,
-                    1.0,  # bottom right
+                    -1.0, 1.0, 0.0, 0.0, # top left vertex coords (-1.0, 1.0) and top left uv coords (0.0.)
+                    1.0, 1.0, 1.0, 0.0,  # top right
+                    -1.0,-1.0, 0.0,1.0,  # bottom left
+                    1.0, -1.0, 1.0, 1.0, # bottom right
                 ],
             )
         )
@@ -108,16 +88,12 @@ class GameGL:
         with open(glsl_folder / "frag_shader.glsl", "r") as file:
             frag_shader = file.read()
 
-        ic("Shader compilation start")
         self.program = self.ctx.program(vert_shader, frag_shader)  # compiles GLSL code
 
         # format is 2 floats ('in_verts') and 2 floats ('in_texcoord') for the buffer
         self.render_object = self.ctx.vertex_array(self.program, [(quad_buffer, "2f 2f", "in_vert", "in_texcoord")])
-        ic("Shader compilation end")
 
-        # Enable blending
         self.ctx.enable(moderngl.BLEND)
-        # Set the blending function
         self.ctx.blend_func = (moderngl.SRC_ALPHA, moderngl.ONE_MINUS_SRC_ALPHA)
 
         # Initial values
@@ -136,14 +112,7 @@ class GameGL:
         --------------------------------------------------------------------------------
         """
 
-        self.start_time = 0
-        self.clock = pg.time.Clock()
-        self.states = states
-        self.state_name = start_state
-        self.state = self.states[self.state_name]
-        self.font = pg.font.Font("freesansbold.ttf", 32)
 
-        self.fight_status = FightStatus(p1_ship="martian", ai_ship="plutonian")
 
     def surf_to_texture(self, surf) -> moderngl.Texture:
         """
@@ -166,7 +135,10 @@ class GameGL:
 
     def event_loop(self) -> None:
         for event in pg.event.get():
-            self.state.get_event(event)
+            if self.state_name == "MENU":
+                self.fight_status = self.state.get_event(event)
+            else: 
+                self.state.get_event(event)
 
     def flip_state(self) -> None:
         current_state = self.state_name
@@ -175,7 +147,7 @@ class GameGL:
         ic("State transition:", current_state, next_state)
         self.state_name = next_state
         self.state = self.states[self.state_name]
-        self.state.startup(self.fight_status)
+        self.state.startup(self.fight_status, self.config)
 
     def update(self) -> None:
         if self.state.quit:
@@ -183,7 +155,7 @@ class GameGL:
             ic("Player terminated game")
         elif self.state.done:
             self.flip_state()
-        self.state.update()  # call the update function in active state
+        self.state.update(self.fight_status, self.config)  # call the update function in active state - this is always inherited from the base class
 
         if self.previous_effect != self.state.active_effect:
             self.previous_effect = self.state.active_effect

@@ -13,15 +13,15 @@ class GamePlay(BaseState):
     GamePlay class is mostly just an abstract class to be subclassed
     However, it does keep track of triggered GLSL effects and manage their timing
     '''
-    def __init__(self, config) -> None:
-        super().__init__(config)
-        self.config = config
+    def __init__(self, ) -> None:
+        super().__init__()
 
-    def startup(self, fight_status) -> None:
+    def startup(self, fight_status, config) -> None:
         self.fight_status = fight_status
+        self.config = config
         self.current_level = 1
         self.level = Level(self.config)
-        self.level.startup(self.current_level)
+        self.level.startup(self.current_level, self.fight_status)
         self.name = "GAMEPLAY"
         self.next_state = "READY"
         self.effect_timer = 0
@@ -34,7 +34,11 @@ class GamePlay(BaseState):
         if event.type == pg.QUIT:
             self.quit = True
 
-    def update(self) -> None:
+    # The only state which overwrites the parent update() function
+    def update(self, fight_status, config) -> None:
+        self.fight_status = fight_status
+        self.config = config
+        
         self.level.update()
         self.zoom = self.level.zoom
         self.zoom_x = self.level.zoom_x

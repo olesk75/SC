@@ -113,7 +113,7 @@ class EngineTrail(pg.sprite.Sprite):
         self.rect.x = self.pos_x
         self.rect.y = self.pos_y
 
-    def update(self,) -> None:
+    def update(self) -> None:
         self.image: pg.Surface
         self.ticks += 1
 
@@ -128,6 +128,7 @@ class EngineTrail(pg.sprite.Sprite):
 class Projectile(GameObject):
     def __init__(
         self,
+        type: str,
         x_pos: int,
         y_pos: int,
         health: int,
@@ -160,24 +161,34 @@ class Projectile(GameObject):
         self.expiry_time = expiry_time
         self.explode = explode
         self.explosion_size: int
-        self.damage: int 
+        self.damage = damage
 
         self.ticks = 0
 
-        self.type = "placeholder"
-        self.image = pg.image.load("assets/projectiles/green_shot.png").convert_alpha()
+        self.type = type
+        types = ['green shot', 'missile']
+        if self.type in types:
+            match self.type:
+                case 'green shot':
+                    self.image = pg.image.load("assets/projectiles/green_shot.png").convert_alpha()
+                    
+                case 'missile':
+                    self.image = pg.image.load("assets/projectiles/missile.png").convert_alpha()
+ 
+
+        else:
+            ValueError(f"{self.type} is not an allowed shot type")
+
+        self.image_orig = self.image
+        self.rect_orig = self.image.get_rect()
+
         self.rect = self.image.get_rect()
 
-        # We set rotation
+        # We set rotation and get our collision mask
         self.image, self.rect = self._rotatesprite(self.image, self.rect, heading)
-
         self.mask = pg.mask.from_surface(self.image)
 
-        # Every projectile is different
-        if self.type == "placeholder":
-            self.expiry_time = 60  # 60 tics * 3 = 3 seconds
-            self.explosion_size = 50
-            self.damage = 100
+            
 
     def fire(self, primary: bool) -> None:
         return super().fire(primary)
@@ -185,8 +196,40 @@ class Projectile(GameObject):
     def trigger_shield(self) -> None:
         return super().trigger_shield()
 
-    def update(self) -> None:
+    def update(self, target) -> None:
         self.ticks += 1
+
+        # Special behaviors
+        if self.type == 'missile':
+            turning = 0
+            if self.velocity < self.max_velocity:
+                self.velocity += 1
+            
+            # Remember: 0 degrees is up, angle increases counter-clockwise
+            target_angle_rad = math.atan2(target.y_pos - self.y_pos, target.x_pos - self.x_pos) + math.pi/2
+            target_angle = 360-math.degrees((target_angle_rad + 2 * math.pi) % (2 * math.pi))  # angle from projectile to target
+
+            # We now know the attack angle, but we must consider obstacles and attitude
+            #print(f'vector angle: {target_angle:.2f}, heading ai: {self.ai.heading:.1f}, heading player: {player.heading:.1f}')
+
+            # find which direction turn in the shortest - clockwise (decreasing angle) or counter-clockwise (increasing angle)
+            attack_angle = target_angle - self.heading + 360 if target_angle - self.heading < 0 else target_angle - self.heading
+
+            if attack_angle > 5 and attack_angle < 360 - 5:
+                turning = -1 if attack_angle > 180 else 1  # turn to target
+            
+            self.spin(turning, 5, True)
+            # Rotation
+            self.image, self.rect = self._rotatesprite(self.image_orig, self.rect_orig, self.heading)
+            self.mask = pg.mask.from_surface(self.image)
+
+
+
+
+
+
+
+
 
         # If we're too old we die or explode
         if self.ticks >= self.expiry_time:

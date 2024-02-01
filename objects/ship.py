@@ -11,8 +11,9 @@ class Ship(GameObject):
     attributes for each type of ship
 
     """
+    ships = ["martian", "plutonian", "zapper", "rocket", "miner", "behemoth"]
 
-    def __init__(self, x_pos, y_pos, direction, velocity, heading, ship_type, config) -> None:
+    def __init__(self, x_pos:int , y_pos:int , direction:int , velocity:int , heading:int , ship_type:str, config) -> None:
         # Placeholders overridden by child objects
         self.projectiles = pg.sprite.Group()
         self.engine_trails = pg.sprite.Group()
@@ -43,54 +44,214 @@ class Ship(GameObject):
         self.teleport_coords = (False, False)
 
         self.width = 80  # TODO: into game object
-        self.height = 80
-        self.ships = ["martian", "plutonian"]
+        self.height = 80    
 
-        match self.ship_type:
-            case "martian":
-                self.health = 1000
-                self.shield = 1000
-                self.energy = 1000
-                self.recharge = 5
-                self.fire_rate = 100  # lower is faster
-                self.max_velocity = 10
-                self.max_energy = 1000
-                self.turn_speed = 5
-                self.image_ship = pg.image.load("assets/ships/martian.png").convert_alpha()
-                self.image_engines = pg.image.load("assets/ships/martian-engines.png").convert_alpha()
-                self.special = "teleport"
-                self.fire_sound = pg.mixer.Sound("assets/sounds/shot_5.wav")
-                self.fire_sound.set_volume(0.9)
-                self.special_sound = pg.mixer.Sound("assets/sounds/change_1.wav")
-                self.special_sound.set_volume(0.4)
-                self.hit_other_sound = pg.mixer.Sound("assets/sounds/hit1.wav")
-                self.hit_other_sound.set_volume(0.5)
-                self.explosion_sound = pg.mixer.Sound("assets/sounds/explosion - muffled big.wav")
-                self.explosion_sound.set_volume(1.0)
+        if self.ship_type in self.ships:
+            match self.ship_type:
+                case "martian":
+                    self.health = 1000
+                    self.shield = 1000
+                    self.energy = 1000
+                    self.recharge = 5
 
-            case "plutonian":
-                self.health = 2000
-                self.shield = 500
-                self.energy = 250
-                self.recharge = 10
-                self.fire_rate = 500
-                self.max_velocity = 15
-                self.max_energy = 1000
-                self.turn_speed = 5
-                self.image_ship = pg.image.load("assets/ships/plutonian_2.png").convert_alpha()
-                self.image_engines = pg.image.load("assets/ships/plutonian_2-engines.png").convert_alpha()
-                self.special = "shield"
-                self.fire_sound = pg.mixer.Sound("assets/sounds/fire_2.wav")
-                self.fire_sound.set_volume(0.9)
-                self.special_sound = pg.mixer.Sound("assets/sounds/shot_5.wav")
-                self.special_sound.set_volume(0.5)
-                self.hit_other_sound = pg.mixer.Sound("assets/sounds/hit2.wav")
-                self.hit_other_sound.set_volume(0.5)
-                self.explosion_sound = pg.mixer.Sound("assets/sounds/explosion - muffled big.wav")
-                self.explosion_sound.set_volume(1.0)
+                    self.fire_rate = 100  # lower is faster
+                    self.projectile_type = "green shot"
+                    self.p_health = 100
+                    self.p_shield = 50
+                    self.p_energy = 50 
+                    self.p_recharge = 50
+                    self.p_fire_rate = 0
+                    self.p_explode = False
+                    self.p_damage = 100
+                    self.p_velocity = 50
+                    self.p_max_velocity = 50        
+                    self.p_expiry_time = 60
 
-            case _:
-                raise ValueError(f"{ship_type} is not an allowed ship type")
+                    self.max_velocity = 10
+                    self.max_energy = 1000
+                    self.turn_speed = 5
+                    self.image_ship = pg.image.load("assets/ships/martian.png").convert_alpha()
+                    self.image_engines = pg.image.load("assets/ships/martian-engines.png").convert_alpha()
+                    self.special = "teleport"
+                    self.fire_sound = pg.mixer.Sound("assets/sounds/shot_5.wav")
+                    self.fire_sound.set_volume(0.9)
+                    self.special_sound = pg.mixer.Sound("assets/sounds/change_1.wav")
+                    self.special_sound.set_volume(0.4)
+                    self.hit_other_sound = pg.mixer.Sound("assets/sounds/hit1.wav")
+                    self.hit_other_sound.set_volume(0.5)
+                    self.explosion_sound = pg.mixer.Sound("assets/sounds/explosion - muffled big.wav")
+                    self.explosion_sound.set_volume(1.0)
+
+                case "plutonian":
+                    self.health = 2000
+                    self.shield = 0
+                    self.energy = 500
+                    self.recharge = 10
+                    self.fire_rate = 500
+                    self.projectile_type = "green shot"
+                    self.p_health = 100
+                    self.p_shield = 50
+                    self.p_energy = 50 
+                    self.p_recharge = 50
+                    self.p_fire_rate = 0
+                    self.p_explode = False
+                    self.p_damage = 100
+                    self.p_velocity = 50
+                    self.p_max_velocity = 50        
+                    self.p_expiry_time = 60
+
+                    self.projectile_type = "green shot"
+                    self.max_velocity = 15
+                    self.max_energy = 1000
+                    self.turn_speed = 5
+                    self.image_ship = pg.image.load("assets/ships/plutonian_2.png").convert_alpha()
+                    self.image_engines = pg.image.load("assets/ships/plutonian_2-engines.png").convert_alpha()
+                    self.special = "shield"
+                    self.fire_sound = pg.mixer.Sound("assets/sounds/fire_2.wav")
+                    self.fire_sound.set_volume(0.9)
+                    self.special_sound = pg.mixer.Sound("assets/sounds/shot_5.wav")
+                    self.special_sound.set_volume(0.5)
+                    self.hit_other_sound = pg.mixer.Sound("assets/sounds/hit2.wav")
+                    self.hit_other_sound.set_volume(0.5)
+                    self.explosion_sound = pg.mixer.Sound("assets/sounds/explosion - muffled big.wav")
+                    self.explosion_sound.set_volume(1.0)
+
+                case "zapper":
+                    self.health = 500
+                    self.shield = 1500
+                    self.energy = 250
+                    self.recharge = 50
+                    self.fire_rate = 500
+                    self.projectile_type = "green shot"
+                    self.p_health = 100
+                    self.p_shield = 50
+                    self.p_energy = 50 
+                    self.p_recharge = 50
+                    self.p_fire_rate = 0
+                    self.p_explode = False
+                    self.p_damage = 100
+                    self.p_velocity = 50
+                    self.p_max_velocity = 50        
+                    self.p_expiry_time = 60
+
+                    self.max_velocity = 15
+                    self.max_energy = 500
+                    self.turn_speed = 5
+                    self.image_ship = pg.image.load("assets/ships/zapper.png").convert_alpha()
+                    self.image_engines = pg.image.load("assets/ships/zapper-engines.png").convert_alpha()
+                    self.special = "shield"
+                    self.fire_sound = pg.mixer.Sound("assets/sounds/beam_3.wav")
+                    self.fire_sound.set_volume(0.9)
+                    self.special_sound = pg.mixer.Sound("assets/sounds/continuous_1.wav")
+                    self.special_sound.set_volume(0.5)
+                    self.hit_other_sound = pg.mixer.Sound("assets/sounds/hit2.wav")
+                    self.hit_other_sound.set_volume(0.5)
+                    self.explosion_sound = pg.mixer.Sound("assets/sounds/explosion - muffled big.wav")
+                    self.explosion_sound.set_volume(1.0)
+
+                case "rocket":
+                    self.health = 1000
+                    self.shield = 1500
+                    self.energy = 250
+                    self.recharge = 50
+
+                    self.fire_rate = 1000
+                    self.projectile_type = "missile"
+                    self.p_health = 100
+                    self.p_shield = 50
+                    self.p_energy = 50 
+                    self.p_recharge = 250
+                    self.p_fire_rate = 0
+                    self.p_explode = False
+                    self.p_damage = 500
+                    self.p_velocity = 0
+                    self.p_max_velocity = 15      
+                    self.p_expiry_time = 60
+
+                    self.max_velocity = 15
+                    self.max_energy = 500
+                    self.turn_speed = 5
+                    self.image_ship = pg.image.load("assets/ships/rocket.png").convert_alpha()
+                    self.image_engines = pg.image.load("assets/ships/rocket-engines.png").convert_alpha()
+                    self.special = "shield"
+                    self.fire_sound = pg.mixer.Sound("assets/sounds/missile1.wav")
+                    self.fire_sound.set_volume(0.9)
+                    self.special_sound = pg.mixer.Sound("assets/sounds/continuous_1.wav")
+                    self.special_sound.set_volume(0.5)
+                    self.hit_other_sound = pg.mixer.Sound("assets/sounds/hit2.wav")
+                    self.hit_other_sound.set_volume(0.5)
+                    self.explosion_sound = pg.mixer.Sound("assets/sounds/explosion - muffled big.wav")
+                    self.explosion_sound.set_volume(1.0)
+
+                case "behemoth":
+                    self.health = 500
+                    self.shield = 1500
+                    self.energy = 250
+                    self.recharge = 50
+                    self.fire_rate = 500
+                    self.projectile_type = "green shot"
+                    self.p_health = 100
+                    self.p_shield = 50
+                    self.p_energy = 500
+                    self.p_recharge = 50
+                    self.p_fire_rate = 0
+                    self.p_explode = False
+                    self.p_damage = 100
+                    self.p_velocity = 50
+                    self.p_max_velocity = 50        
+                    self.p_expiry_time = 60
+
+                    self.max_velocity = 15
+                    self.max_energy = 500
+                    self.turn_speed = 5
+                    self.image_ship = pg.image.load("assets/ships/behemoth.png").convert_alpha()
+                    self.image_engines = pg.image.load("assets/ships/behemoth-engines.png").convert_alpha()
+                    self.special = "shield"
+                    self.fire_sound = pg.mixer.Sound("assets/sounds/beam_3.wav")
+                    self.fire_sound.set_volume(0.9)
+                    self.special_sound = pg.mixer.Sound("assets/sounds/continuous_1.wav")
+                    self.special_sound.set_volume(0.5)
+                    self.hit_other_sound = pg.mixer.Sound("assets/sounds/hit2.wav")
+                    self.hit_other_sound.set_volume(0.5)
+                    self.explosion_sound = pg.mixer.Sound("assets/sounds/explosion - muffled big.wav")
+                    self.explosion_sound.set_volume(1.0)
+
+                case "miner":
+                    self.health = 500
+                    self.shield = 1500
+                    self.energy = 250
+                    self.recharge = 50
+                    self.fire_rate = 500
+                    self.projectile_type = "green shot"
+                    self.p_health = 100
+                    self.p_shield = 50
+                    self.p_energy = 50 
+                    self.p_recharge = 50
+                    self.p_fire_rate = 0
+                    self.p_explode = False
+                    self.p_damage = 100
+                    self.p_velocity = 50
+                    self.p_max_velocity = 50        
+                    self.p_expiry_time = 60
+
+                    self.max_velocity = 15
+                    self.max_energy = 500
+                    self.turn_speed = 5
+                    self.image_ship = pg.image.load("assets/ships/miner.png").convert_alpha()
+                    self.image_engines = pg.image.load("assets/ships/miner-engines.png").convert_alpha()
+                    self.special = "shield"
+                    self.fire_sound = pg.mixer.Sound("assets/sounds/beam_3.wav")
+                    self.fire_sound.set_volume(0.9)
+                    self.special_sound = pg.mixer.Sound("assets/sounds/continuous_1.wav")
+                    self.special_sound.set_volume(0.5)
+                    self.hit_other_sound = pg.mixer.Sound("assets/sounds/hit2.wav")
+                    self.hit_other_sound.set_volume(0.5)
+                    self.explosion_sound = pg.mixer.Sound("assets/sounds/explosion - muffled big.wav")
+                    self.explosion_sound.set_volume(1.0)
+
+          
+        else:
+            ValueError(f"{ship_type} is not an allowed ship type")
 
         super().__init__(
             x_pos,
@@ -107,6 +268,7 @@ class Ship(GameObject):
         )
         self.image = self.image_ship
         self.rect = self.image.get_rect()
+        self.rect.center = (self.x_pos, self.y_pos)
 
         # We need these for roations etc.
         self.image_orig = self.image
@@ -114,38 +276,31 @@ class Ship(GameObject):
 
     def fire(self) -> None:
         now = pg.time.get_ticks()
-        if now - self.last_fire > self.fire_rate and self.energy > 10:  # hardcoded
+        if now - self.last_fire > self.fire_rate and self.energy >= self.p_recharge:  # hardcoded
             self.last_fire = now
             self.fire_sound.play()
-            self.energy -= 10  # hardcoded
+            self.energy -= self.p_recharge
             # firing primary weapon
             # TODO: placeholder data
             self.firing = True
-            p_velocity = 20
             p_direction = self.heading
-            p_health = 1000
-            p_time = 10
-            p_shield = 1000
-            p_energy = 0
-            p_recharge = 0
-            p_fire_rate = 0
-            p_explode = False
-            p_damage = 100
+
             self.p = Projectile(
+                self.projectile_type,
                 self.x_pos,
                 self.y_pos,
-                p_health,
-                p_shield,
-                p_energy,
-                p_recharge,
-                p_fire_rate,
-                p_explode,
-                p_damage,
+                self.p_health,
+                self.p_shield,
+                self.p_energy,
+                self.p_recharge,
+                self.p_fire_rate,
+                self.p_explode,
+                self.p_damage,
                 p_direction,
-                p_velocity,
+                self.p_velocity,
                 p_direction,
-                max_velocity=1000,
-                expiry_time=p_time,
+                self.p_max_velocity,
+                self.p_expiry_time
             )
             self.projectiles.add(self.p)
 

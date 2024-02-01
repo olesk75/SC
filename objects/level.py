@@ -4,7 +4,7 @@ from icecream import ic
 import random
 
 from objects.players import Player, EnemyAI
-from objects.gameinfo import GameInfo
+from objects.gameinfo import GameInfoOverlay
 from objects.gameobject import Planet
 from utility.debug import debug
 
@@ -74,25 +74,27 @@ class Level:
         return (zoom, zoom_x, zoom_y)
 
      
-    def startup(self, number) -> None:
+    def startup(self, number, fight_status) -> None:
         '''
         Set up players and all sprite groups
         '''
-        self.game_info = GameInfo(self.config)
+        self.game_info = GameInfoOverlay(self.config)
 
         random_locations = self._random_location(10)  # generate 10 random locations, more than 100 pixels apart
+
+        ic(fight_status)
 
         self.player = Player(
             random_locations.pop(),
             heading=random.random() * 359,
-            ship_type="martian",
+            ship_type=fight_status.p1_ship,
             config=self.config
         )
 
         self.enemy = EnemyAI(
             random_locations.pop(),
             heading=random.random() * 359,
-            ship_type="plutonian",
+            ship_type=fight_status.ai_ship,
             skill=self.enemyAI_difficulty,
             config = self.config
         )
@@ -150,13 +152,13 @@ class Level:
         self.player.update()
         
         # Updates the players's projectile sprites
-        self.player.projectiles.update()
+        self.player.projectiles.update(self.enemy)
         self.player.engine_trails.update()
 
         # Update enemies and their projectiles
         self.enemy.update()
 
-        self.enemy.projectiles.update()
+        self.enemy.projectiles.update(self.player)
         self.enemy.engine_trails.update()
 
         self.enemy.ai.update(self.player, self.celestials)

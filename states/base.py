@@ -4,8 +4,9 @@ from abc import ABC, abstractmethod
 
 
 class BaseState:
-    def __init__(self, config) -> None:
-        self.config = config
+    def __init__(self) -> None:
+        self.config = None  # Updated in update() functions
+        self.fight_status = None  # Updated in update() functions
         self.done = False
         self.quit = False
         self.next_state = None
@@ -40,15 +41,16 @@ class BaseState:
         pass
 
     @abstractmethod
-    def startup(self, fight_state) -> None:
+    def startup(self, fight_state, config) -> None:
         pass
 
-    @abstractmethod
-    def update(self) -> None:
-        """Placeholder to be overwritten in each state class"""
-        pass
 
     @abstractmethod
     def draw(self, surface) -> None:
         """Placeholder to be overwritten in each state class"""
         pass
+
+    # We update the config and the fight status for all states - do NOT overwrite!
+    def update(self, config, fight_status) -> None:
+        self.config = config
+        self.fight_status = fight_status

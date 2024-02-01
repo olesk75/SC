@@ -24,9 +24,9 @@ class GameConfig:
     SHOW_FPS = settings.SHOW_FPS
     window_size_xy = None  # only populated in GameGL
 
-config = GameConfig
+config = GameConfig()
 
-# pg setup
+# pygame setup
 # Initializing
 pg.mixer.pre_init(44100, -16, 2, 512)
 pg.init()
@@ -34,11 +34,11 @@ pg.mixer.init()
 pg.mixer.set_num_channels(16)
 
 states = {
-    "MENU": Menu(config),
-    "SPLASH": Splash(config),
-    "READY": Ready(config),
-    "GAMEPLAY": GamePlay(config),
-    "GAME_OVER": GameOver(config),
+    "MENU": Menu(),           # chose your fight
+    "SPLASH": Splash(),       # splash loading screen, only for a second or two
+    "READY": Ready(),         # 
+    "GAMEPLAY": GamePlay(),
+    "GAME_OVER": GameOver(),  # next state is gameplay again
 }
 
 game = GameGL(states, "SPLASH", config)

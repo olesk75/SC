@@ -4,8 +4,8 @@ import pygame as pg
 
 
 class GameOver(BaseState):
-    def __init__(self, config) -> None:
-        super().__init__(config)
+    def __init__(self,) -> None:
+        super().__init__()
         self.active_index = 0
         self.options = ["Start Game Player vs AI", "Start Game Player vs Player", "Quit Game"]
         self.name = "GAMEOVER"
@@ -51,3 +51,5 @@ class GameOver(BaseState):
         for index, _ in enumerate(self.options):
             text_render = self.render_text(index)
             surface.blit(text_render, self.get_text_position(text_render, index))
+
+   
