@@ -30,10 +30,10 @@ class Ready(BaseState):
         x1_pos = int(self.config.window_size_xy * 0.25)
         x2_pos = self.config.window_size_xy - x1_pos
 
-        center_x1 = x1_pos + width / 2
-        center_x2 = x2_pos + width / 2 - width
+        center_x1 = int(x1_pos + width / 2)
+        center_x2 = int(x2_pos + width / 2 - width)
 
-        center_y1 = center_y2 = y_pos + height / 2
+        center_y1 = center_y2 = int(y_pos + height / 2)
 
         ship1 = Ship(center_x1, center_y1, 180, 0, 180, self.fight_status.p1_ship, self.config)
         ship2 = Ship(center_x2, center_y2, 180, 0, 180, self.fight_status.ai_ship, self.config)

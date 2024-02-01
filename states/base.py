@@ -51,6 +51,6 @@ class BaseState:
         pass
 
     # We update the config and the fight status for all states - do NOT overwrite!
-    def update(self, config, fight_status) -> None:
+    def update(self, fight_status, config) -> None:
         self.config = config
         self.fight_status = fight_status

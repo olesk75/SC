@@ -52,7 +52,7 @@ class Ship(GameObject):
                     self.health = 1000
                     self.shield = 1000
                     self.energy = 1000
-                    self.recharge = 5
+                    self.recharge = 50
 
                     self.fire_rate = 100  # lower is faster
                     self.projectile_type = "green shot"
@@ -73,6 +73,7 @@ class Ship(GameObject):
                     self.image_ship = pg.image.load("assets/ships/martian.png").convert_alpha()
                     self.image_engines = pg.image.load("assets/ships/martian-engines.png").convert_alpha()
                     self.special = "teleport"
+                    self.special_energy = 100
                     self.fire_sound = pg.mixer.Sound("assets/sounds/shot_5.wav")
                     self.fire_sound.set_volume(0.9)
                     self.special_sound = pg.mixer.Sound("assets/sounds/change_1.wav")
@@ -107,6 +108,7 @@ class Ship(GameObject):
                     self.image_ship = pg.image.load("assets/ships/plutonian_2.png").convert_alpha()
                     self.image_engines = pg.image.load("assets/ships/plutonian_2-engines.png").convert_alpha()
                     self.special = "shield"
+                    self.special_energy = 100
                     self.fire_sound = pg.mixer.Sound("assets/sounds/fire_2.wav")
                     self.fire_sound.set_volume(0.9)
                     self.special_sound = pg.mixer.Sound("assets/sounds/shot_5.wav")
@@ -140,6 +142,7 @@ class Ship(GameObject):
                     self.image_ship = pg.image.load("assets/ships/zapper.png").convert_alpha()
                     self.image_engines = pg.image.load("assets/ships/zapper-engines.png").convert_alpha()
                     self.special = "shield"
+                    self.special_energy = 100
                     self.fire_sound = pg.mixer.Sound("assets/sounds/beam_3.wav")
                     self.fire_sound.set_volume(0.9)
                     self.special_sound = pg.mixer.Sound("assets/sounds/continuous_1.wav")
@@ -174,6 +177,7 @@ class Ship(GameObject):
                     self.image_ship = pg.image.load("assets/ships/rocket.png").convert_alpha()
                     self.image_engines = pg.image.load("assets/ships/rocket-engines.png").convert_alpha()
                     self.special = "shield"
+                    self.special_energy = 100
                     self.fire_sound = pg.mixer.Sound("assets/sounds/missile1.wav")
                     self.fire_sound.set_volume(0.9)
                     self.special_sound = pg.mixer.Sound("assets/sounds/continuous_1.wav")
@@ -207,6 +211,7 @@ class Ship(GameObject):
                     self.image_ship = pg.image.load("assets/ships/behemoth.png").convert_alpha()
                     self.image_engines = pg.image.load("assets/ships/behemoth-engines.png").convert_alpha()
                     self.special = "shield"
+                    self.special_energy = 100
                     self.fire_sound = pg.mixer.Sound("assets/sounds/beam_3.wav")
                     self.fire_sound.set_volume(0.9)
                     self.special_sound = pg.mixer.Sound("assets/sounds/continuous_1.wav")
@@ -240,6 +245,7 @@ class Ship(GameObject):
                     self.image_ship = pg.image.load("assets/ships/miner.png").convert_alpha()
                     self.image_engines = pg.image.load("assets/ships/miner-engines.png").convert_alpha()
                     self.special = "shield"
+                    self.special_energy = 100
                     self.fire_sound = pg.mixer.Sound("assets/sounds/beam_3.wav")
                     self.fire_sound.set_volume(0.9)
                     self.special_sound = pg.mixer.Sound("assets/sounds/continuous_1.wav")
@@ -276,7 +282,7 @@ class Ship(GameObject):
 
     def fire(self) -> None:
         now = pg.time.get_ticks()
-        if now - self.last_fire > self.fire_rate and self.energy >= self.p_recharge:  # hardcoded
+        if now - self.last_fire > self.fire_rate and self.energy >= self.p_recharge: 
             self.last_fire = now
             self.fire_sound.play()
             self.energy -= self.p_recharge
@@ -312,11 +318,14 @@ class Ship(GameObject):
         if not self.dead and self.controllable:
             match self.ship_type:
                 case "martian":  # Teleport
-                    self.x_pos = random.randint(100, self.config.window_size_xy - 100)
-                    self.y_pos = random.randint(100, self.config.window_size_xy - 100)
-                    self.teleporting = True
-                    self.teleport_coords = (self.x_pos, self.y_pos)
-                    self.special_sound.play()
+                    if self.energy > self.special_energy:
+                        self.x_pos = random.randint(100, self.config.window_size_xy - 100)
+                        self.y_pos = random.randint(100, self.config.window_size_xy - 100)
+                        self.teleporting = True
+                        self.teleport_coords = (self.x_pos, self.y_pos)
+                        self.special_sound.play()
+                        self.energy -= self.special_energy
+
 
 
 

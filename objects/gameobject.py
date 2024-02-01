@@ -179,6 +179,7 @@ class Projectile(GameObject):
         else:
             ValueError(f"{self.type} is not an allowed shot type")
 
+        self.image: pg.Surface
         self.image_orig = self.image
         self.rect_orig = self.image.get_rect()
 
