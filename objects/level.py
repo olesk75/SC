@@ -273,6 +273,13 @@ class Level:
                     self.enemy.health -= 100
                     self.player.health -= 100
 
+                # Projectile + projectile collisions
+                
+                # asdasdprojectile_hit = pg.sprite.spritecollide(self.player.projectiles, self.enemy.projectiles, False, pg.sprite.collide_mask)  # type: ignore
+                # asdif projectile_hit:
+                #     projectile = projectile_hit.pop()
+                #     projectile.kill()
+
             # Enemy dead (health zub zero)
             if self.enemy.health <= 0:
                 self.enemy.dead = True

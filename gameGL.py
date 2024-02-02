@@ -216,7 +216,6 @@ class GameGL:
 
     def run(self) -> None:
         while not self.done:
-            self.clock.tick(self.config.FPS)
             self.event_loop()
             self.update()
             self.draw()
