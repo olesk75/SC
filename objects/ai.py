@@ -59,11 +59,11 @@ class AI:
                 self.ai.turning = -1 if attack_angle > 180 else 1  # turn to target
 
             # If distance is high, we fire only with almost full energy and high confidence
-            if distance > self.config.window_size_xy * 0.7 and self.ai.ship_config['energy'] > self.ai.ship_config['max_energy'] * 0.8 and 'confident' in self.attitude:
+            if distance > self.config.window_size_xy * 0.7 and self.ai.energy > self.ai.ship_config['max_energy'] * 0.8 and 'confident' in self.attitude:
                 self.ai.firing = True
 
             # If distance is low, we fire only even with almost no energy
-            if distance <= self.config.window_size_xy * 0.7 and self.ai.ship_config['energy'] > self.ai.ship_config['max_energy'] * 0.1:
+            if distance <= self.config.window_size_xy * 0.7 and self.ai.energy > self.ai.ship_config['max_energy'] * 0.1:
                 self.ai.firing = True
 
             # If we have an obstacle between us, stop firing, try avoiding

@@ -90,7 +90,7 @@ class Ship(GameObject):
 
     def fire(self) -> None:
         now = pg.time.get_ticks()
-        if now - self.last_fire > self.ship_config['fire_rate'] and self.ship_config['energy'] >= self.ship_config['projectile']['recharge']: 
+        if now - self.last_fire > self.ship_config['fire_rate'] and self.energy >= self.ship_config['projectile']['recharge']: 
             self.last_fire = now
             self.fire_sound.play()
             self.energy -= self.ship_config['projectile']['recharge']
