@@ -1,4 +1,6 @@
 configs =  {
+    
+    # The "standard" ship - plain shots and telepor special, fast, low damage, fast firing rate
     'martian': {
         'health': 1000,
         'shield': 1000,
@@ -26,11 +28,11 @@ configs =  {
             'health': 100,
             'shield': 50,
             'energy': 50,
-            'recharge': 50,
-            'fire_rate': 0,
+            'recharge': 15,
+            'fire_rate': 5,
             'explode': False,
-            'damage': 100,
-            'velocity': 50,
+            'damage': 150,
+            'velocity': 15,
             'max_velocity': 50,
             'expiry_time': 60,
             }
@@ -109,6 +111,8 @@ configs =  {
                         'expiry_time': 60,
                         }
     },
+
+    # Fires homing rockets, fast, but slow turning. 
     'rocket': {
                     'health': 1000,
                     'shield': 1500,
@@ -117,7 +121,7 @@ configs =  {
                     'fire_rate': 1000,
                     'max_velocity': 15,
                     'max_energy': 500,
-                    'turn_speed': 5,
+                    'turn_speed': 2,
                     'image_ship': 'assets/ships/rocket.png',
                     'image_engines': 'assets/ships/rocket-engines.png',
                     'special': "shield",
@@ -140,8 +144,8 @@ configs =  {
                         'explode': False,
                         'damage': 500,
                         'velocity': 0,
-                        'max_velocity': 15,
-                        'expiry_time': 60,
+                        'max_velocity': 10,
+                        'expiry_time': 120,
                         }
     },
     'behemoth': {

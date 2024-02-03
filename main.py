@@ -24,7 +24,9 @@ class GameConfig:
     SHOW_FPS = settings.SHOW_FPS
     window_size_xy = None  # only populated in GameGL
 
+
 config = GameConfig()
+
 
 # pygame setup
 # Initializing

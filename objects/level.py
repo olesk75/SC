@@ -276,13 +276,13 @@ class Level:
                 self.enemy.hit_other_sound.play()
                     
 
-                # Ship + ship collisions: bounce-back (with small damage?)
-                if pg.sprite.spritecollide(self.enemy, self.player_sprites, False, pg.sprite.collide_mask):  # type: ignore    
-                    (x, y) = self.player.vel_x, self.player.vel_y
-                    (self.player.vel_x, self.player.vel_y) = (self.enemy.vel_x, self.enemy.vel_y)  # we swap velocities 
-                    (self.enemy.vel_x, self.enemy.vel_y) = (x, y)
-                    self.enemy.health -= 100
-                    self.player.health -= 100
+            # Ship + ship collisions: bounce-back (with small damage?)
+            if pg.sprite.spritecollide(self.enemy, self.player_sprites, False, pg.sprite.collide_mask):  # type: ignore    
+                (x, y) = self.player.vel_x, self.player.vel_y
+                (self.player.vel_x, self.player.vel_y) = (self.enemy.vel_x, self.enemy.vel_y)  # we swap velocities 
+                (self.enemy.vel_x, self.enemy.vel_y) = (x, y)
+                self.enemy.health -= 100
+                self.player.health -= 100
 
                 # Projectile + projectile collisions
                 
