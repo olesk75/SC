@@ -8,6 +8,12 @@ from objects.gameinfo import GameInfoOverlay
 from objects.gameobject import Planet
 from utility.debug import debug
 
+import settings
+
+if settings.PROFILING:
+    from scalene import scalene_profiler
+
+
 
 class Level:
     def __init__(self, config) -> None:
@@ -147,6 +153,11 @@ class Level:
 
     # Update all objects
     def update(self) -> None:
+        # Turn profiling on
+        if settings.PROFILING:
+            scalene_profiler.start()
+
+
         (self.zoom, self.zoom_x, self.zoom_y) = self._set_zoom(self.zoom)
         
         self.player.update()
@@ -321,6 +332,9 @@ class Level:
                     self.teleport_coords = self.enemy.teleport_coords
                 self.player.teleporting = self.enemy.teleporting = False
 
+        # Turn profiling off
+        if settings.PROFILING:
+            scalene_profiler.stop()
         
 
     # Draw all sprite groups + background
