@@ -71,10 +71,10 @@ class GameGL:
             data=array(
                 "f",
                 [  # 'f' mean float
-                    -1.0, 1.0, 0.0, 0.0, # top left vertex coords (-1.0, 1.0) and top left uv coords (0.0.)
-                    1.0, 1.0, 1.0, 0.0,  # top right
-                    -1.0,-1.0, 0.0,1.0,  # bottom left
-                    1.0, -1.0, 1.0, 1.0, # bottom right
+                    -1.0, 1.0, 0.0, 0.0,  # top left vertex coords (-1.0, 1.0) and top left uv coords (0.0.)
+                    1.0, 1.0, 1.0, 0.0,   # top right
+                    -1.0, -1.0, 0.0, 1.0,   # bottom left
+                    1.0, -1.0, 1.0, 1.0,  # bottom right
                 ],
             )
         )
@@ -206,6 +206,7 @@ class GameGL:
         pg.display.flip()
 
         frame_tex.release()  # free up VRAM - required!
+        
 
         self.effect_counter += 1  # increases 60 per second
         self.clock.tick(self.config.FPS)

@@ -8,12 +8,6 @@ from objects.gameinfo import GameInfoOverlay
 from objects.gameobject import Planet
 from utility.debug import debug
 
-import settings
-
-if settings.PROFILING:
-    from scalene import scalene_profiler
-
-
 
 class Level:
     def __init__(self, config) -> None:
@@ -55,7 +49,8 @@ class Level:
             x = random.randint(int(self.config.window_size_xy * 0.1), int(self.config.window_size_xy * 0.9))  # avoiding the edges
             y = random.randint(int(self.config.window_size_xy * 0.1), int(self.config.window_size_xy * 0.9))
 
-            distance = lambda x1, y1, x2, y2: ((x1 - x2)**2 + (y1 - y2)**2)**0.5
+            def distance(x1, y1, x2, y2) -> float:
+                return ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
         
             # Check if the new point is at least min_distance away from existing points
             if all(distance(x, y, cx, cy) >= min_distance for cx, cy in locations):
@@ -153,10 +148,6 @@ class Level:
 
     # Update all objects
     def update(self) -> None:
-        # Turn profiling on
-        if settings.PROFILING:
-            scalene_profiler.start()
-
 
         (self.zoom, self.zoom_x, self.zoom_y) = self._set_zoom(self.zoom)
         
@@ -331,11 +322,6 @@ class Level:
                 else: 
                     self.teleport_coords = self.enemy.teleport_coords
                 self.player.teleporting = self.enemy.teleporting = False
-
-        # Turn profiling off
-        if settings.PROFILING:
-            scalene_profiler.stop()
-        
 
     # Draw all sprite groups + background
     def draw(self, surface, overlay) -> None:

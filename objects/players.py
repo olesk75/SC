@@ -1,10 +1,7 @@
-from .ship import Ship
-from .ai import AI
-
 import pygame as pg
-from icecream import ic
-import math
 
+from objects.ship import Ship
+from objects.ai import AI
 
 
 class EnemyPlayer(Ship):

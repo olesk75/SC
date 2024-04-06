@@ -12,10 +12,24 @@ class GameObject(pg.sprite.Sprite, ABC):
         shield  : remaining shield
         alive   : dead or alive?
 
-    The class inherits from the Sprite class. Object is added to a sprite group, which then is used for calling the draw(method)
+    The class inherits from the Sprite class. Object is added to a sprite group, 
+    which then is used for calling the draw(method)
     """
 
-    def __init__(self, x_pos, y_pos, health, shield, energy, recharge, fire_rate, direction, velocity, heading, max_velocity) -> None:
+    def __init__(
+        self,
+        x_pos,
+        y_pos,
+        health,
+        shield,
+        energy,
+        recharge,
+        fire_rate,
+        direction,
+        velocity,
+        heading,
+        max_velocity,
+    ) -> None:
         self.x_pos = x_pos
         self.y_pos = y_pos
         self.health = health
@@ -30,16 +44,18 @@ class GameObject(pg.sprite.Sprite, ABC):
 
         self.under_gravity = False
 
-        self.alive = True   # type: ignore
+        self.alive = True  # type: ignore
         self.firing = False
         self.shielded = False
         self.exploding = False
-       
+
         super().__init__()
 
     def spin(self, turning, ship_rotate_speed, slow_turn) -> None:
         # direction > 0 -> clockwise
-        ship_rotate_speed = int(ship_rotate_speed/2) if slow_turn else ship_rotate_speed
+        ship_rotate_speed = (
+            int(ship_rotate_speed / 2) if slow_turn else ship_rotate_speed
+        )
         self.heading += ship_rotate_speed * turning
         if self.heading >= 360:
             self.heading -= 360
@@ -59,7 +75,9 @@ class GameObject(pg.sprite.Sprite, ABC):
     def trigger_shield(self) -> None:
         pass
 
-    def _rotatesprite(self, image: pg.Surface, rect: pg.Rect, angle) -> tuple[pg.Surface, pg.Rect]:
+    def _rotatesprite(
+        self, image: pg.Surface, rect: pg.Rect, angle
+    ) -> tuple[pg.Surface, pg.Rect]:
         """rotate an image while keeping its center"""
         rot_image = pg.transform.rotate(image, angle)
         rot_rect = rot_image.get_rect(center=rect.center)
@@ -70,12 +88,16 @@ class GameObject(pg.sprite.Sprite, ABC):
         print(f"Speed: {self.velocity}, rotation: {self.heading}")
 
     def draw(self) -> None:
-        raise RuntimeError("Never use draw method directly. Include in sprite group and call draw() on that instead")
+        raise RuntimeError(
+            "Never use draw method directly. Include in sprite group and call draw() on that instead"
+        )
         exit(1)
 
 
 class Obstacle(GameObject):
-    def __init__(self, x_pos: int, y_pos: int, health: int, shield, destructible: bool) -> None:
+    def __init__(
+        self, x_pos: int, y_pos: int, health: int, shield, destructible: bool
+    ) -> None:
         super().__init__(
             x_pos, y_pos, health, shield, 0, 0, 0, 0, 0, 0, 0
         )  # obstacles have no direction, velocity nor heading
@@ -108,8 +130,9 @@ class EngineTrail(pg.sprite.Sprite):
         self.image.fill("#ffcc00")
 
         # Update the position of this object by setting the values of rect.x and rect.y
+        self.rect: pg.rect.Rect
         self.rect = self.image.get_rect()
-        
+
         self.rect.x = self.pos_x
         self.rect.y = self.pos_y
 
@@ -120,8 +143,8 @@ class EngineTrail(pg.sprite.Sprite):
         if self.ticks >= self.lifespan:
             self.kill()
 
-        self.rect.x = self.pos_x # type:ignore
-        self.rect.y = self.pos_y # type:ignore
+        self.rect.x = self.pos_x
+        self.rect.y = self.pos_y
         self.image.set_alpha(255 - self.ticks * 10)
 
 
@@ -166,15 +189,18 @@ class Projectile(GameObject):
         self.ticks = 0
 
         self.type = type
-        types = ['green shot', 'missile']
+        types = ["green shot", "missile"]
         if self.type in types:
             match self.type:
-                case 'green shot':
-                    self.image = pg.image.load("assets/projectiles/green_shot.png").convert_alpha()
-                    
-                case 'missile':
-                    self.image = pg.image.load("assets/projectiles/missile.png").convert_alpha()
- 
+                case "green shot":
+                    self.image = pg.image.load(
+                        "assets/projectiles/green_shot.png"
+                    ).convert_alpha()
+
+                case "missile":
+                    self.image = pg.image.load(
+                        "assets/projectiles/missile.png"
+                    ).convert_alpha()
 
         else:
             ValueError(f"{self.type} is not an allowed shot type")
@@ -189,8 +215,6 @@ class Projectile(GameObject):
         self.image, self.rect = self._rotatesprite(self.image, self.rect, heading)
         self.mask = pg.mask.from_surface(self.image)
 
-            
-
     def fire(self, primary: bool) -> None:
         return super().fire(primary)
 
@@ -201,36 +225,40 @@ class Projectile(GameObject):
         self.ticks += 1
 
         # Special behaviors
-        if self.type == 'missile':
+        if self.type == "missile":
             turning = 0
             if self.velocity < self.max_velocity:
                 self.velocity += 1
-            
+
             # Remember: 0 degrees is up, angle increases counter-clockwise
-            target_angle_rad = math.atan2(target.y_pos - self.y_pos, target.x_pos - self.x_pos) + math.pi/2
-            target_angle = 360-math.degrees((target_angle_rad + 2 * math.pi) % (2 * math.pi))  # angle from projectile to target
+            target_angle_rad = (
+                math.atan2(target.y_pos - self.y_pos, target.x_pos - self.x_pos)
+                + math.pi / 2
+            )
+            # angle from projectile to target
+            target_angle = 360 - math.degrees(
+                (target_angle_rad + 2 * math.pi) % (2 * math.pi)
+            )
 
             # We now know the attack angle, but we must consider obstacles and attitude
-            #print(f'vector angle: {target_angle:.2f}, heading ai: {self.ai.heading:.1f}, heading player: {player.heading:.1f}')
+            # print(f'vector angle: {target_angle:.2f}, heading ai: {self.ai.heading:.1f}, heading player: {player.heading:.1f}')
 
             # find which direction turn in the shortest - clockwise (decreasing angle) or counter-clockwise (increasing angle)
-            attack_angle = target_angle - self.heading + 360 if target_angle - self.heading < 0 else target_angle - self.heading
+            attack_angle = (
+                target_angle - self.heading + 360
+                if target_angle - self.heading < 0
+                else target_angle - self.heading
+            )
 
             if attack_angle > 5 and attack_angle < 360 - 5:
                 turning = -1 if attack_angle > 180 else 1  # turn to target
-            
+
             self.spin(turning, 5, True)
             # Rotation
-            self.image, self.rect = self._rotatesprite(self.image_orig, self.rect_orig, self.heading)
+            self.image, self.rect = self._rotatesprite(
+                self.image_orig, self.rect_orig, self.heading
+            )
             self.mask = pg.mask.from_surface(self.image)
-
-
-
-
-
-
-
-
 
         # If we're too old we die or explode
         if self.ticks >= self.expiry_time:
@@ -249,29 +277,35 @@ class Projectile(GameObject):
         self.rect.center = (self.x_pos, self.y_pos)  # type: ignore
 
 
+class Beam:
+    def __init__(self, type: str, x_pos: int, y_pos: int, heading: int, energy:int, recharge:int, fire_rate: int, damage: int) -> None:
+        pass
+
+    def update(self) -> None:
+        pass
+
+
 class Planet(pg.sprite.Sprite):
     def __init__(self, planet_type, pos) -> None:
-
         super().__init__()
         self.image: pg.Surface
         if planet_type == 0 or planet_type == 1 or planet_type == 2:
-            self.image = pg.image.load("assets/planets/planet1small.png").convert_alpha()
+            self.image = pg.image.load(
+                "assets/planets/planet1small.png"
+            ).convert_alpha()
 
         self.rect = self.image.get_rect()
         self.rect.center = pos
 
         mask = pg.mask.from_surface(self.image)
         (x, y) = mask.get_size()
-        self.mask = mask.scale((x * 0.9, y * 0.9))  # scales to 80% to account for corners on ships
+        # scales to 80% to account for corners on ships
+        self.mask = mask.scale((x * 0.9, y * 0.9))
 
         self.gravity = 1000
         self.influence_radius = self.rect.width * 5
 
-
-    def update(self, ) -> None:
+    def update(
+        self,
+    ) -> None:
         pass
-
-
-
-
-

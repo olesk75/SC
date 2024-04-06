@@ -1,4 +1,4 @@
-from .gameobject import GameObject, Projectile, EngineTrail
+from .gameobject import GameObject, Projectile, Beam, EngineTrail
 from utility.ship_configs import configs
 
 
@@ -15,9 +15,19 @@ class Ship(GameObject):
     attributes for each type of ship
 
     """
+
     ships = ["martian", "plutonian", "zapper", "rocket", "miner", "behemoth"]
 
-    def __init__(self, x_pos:int , y_pos:int , direction:int , velocity:int , heading:int , ship_type:str, config) -> None:
+    def __init__(
+        self,
+        x_pos: int,
+        y_pos: int,
+        direction: int,
+        velocity: int,
+        heading: int,
+        ship_type: str,
+        config,
+    ) -> None:
         # Placeholders overridden by child objects
         self.projectiles = pg.sprite.Group()
         self.engine_trails = pg.sprite.Group()
@@ -32,7 +42,9 @@ class Ship(GameObject):
 
         self.firing = False
         self.dead = False
-        self.hit = False  # we use this to check if we should draw a hit indicator on the ship
+        self.hit = (
+            False  # we use this to check if we should draw a hit indicator on the ship
+        )
         self.hit_pos = (int, int)
         self.last_fire = 0
         self.last_energy_tick = 0
@@ -48,7 +60,7 @@ class Ship(GameObject):
         self.teleport_coords = (False, False)
 
         self.width = 80  # TODO: into game object
-        self.height = 80    
+        self.height = 80
 
         if self.ship_type in self.ships:
             self.ship_config = configs[self.ship_type]
@@ -56,29 +68,29 @@ class Ship(GameObject):
             ValueError(f"{ship_type} is not an allowed ship type")
 
         # Setting sounds and volumes
-        self.fire_sound = pg.mixer.Sound(self.ship_config['fire_sound'])
-        self.fire_sound.set_volume(self.ship_config['fire_sound_volume'])
-        self.special_sound = pg.mixer.Sound(self.ship_config['special_sound'])
-        self.special_sound.set_volume(self.ship_config['special_sound_volume'])
-        self.hit_other_sound = pg.mixer.Sound(self.ship_config['hit_other_sound'])
-        self.hit_other_sound.set_volume(self.ship_config['hit_other_sound_volume'])
-        self.explosion_sound = pg.mixer.Sound(self.ship_config['explosion_sound'])
-        self.explosion_sound.set_volume(self.ship_config['explosion_sound_volume'])
+        self.fire_sound = pg.mixer.Sound(self.ship_config["fire_sound"])
+        self.fire_sound.set_volume(self.ship_config["fire_sound_volume"])
+        self.special_sound = pg.mixer.Sound(self.ship_config["special_sound"])
+        self.special_sound.set_volume(self.ship_config["special_sound_volume"])
+        self.hit_other_sound = pg.mixer.Sound(self.ship_config["hit_other_sound"])
+        self.hit_other_sound.set_volume(self.ship_config["hit_other_sound_volume"])
+        self.explosion_sound = pg.mixer.Sound(self.ship_config["explosion_sound"])
+        self.explosion_sound.set_volume(self.ship_config["explosion_sound_volume"])
 
         super().__init__(
             x_pos,
             y_pos,
-            self.ship_config['health'],
-            self.ship_config['shield'],
-            self.ship_config['energy'],
-            self.ship_config['recharge'],
-            self.ship_config['fire_rate'],
+            self.ship_config["health"],
+            self.ship_config["shield"],
+            self.ship_config["energy"],
+            self.ship_config["recharge"],
+            self.ship_config["fire_rate"],
             direction,
             velocity,
             heading,
-            self.ship_config['max_velocity'],
+            self.ship_config["max_velocity"],
         )
-        self.image = pg.image.load(self.ship_config['image_ship']).convert_alpha()
+        self.image = pg.image.load(self.ship_config["image_ship"]).convert_alpha()
         self.rect = self.image.get_rect()
         self.rect.center = (self.x_pos, self.y_pos)
 
@@ -90,33 +102,57 @@ class Ship(GameObject):
 
     def fire(self) -> None:
         now = pg.time.get_ticks()
-        if now - self.last_fire > self.ship_config['fire_rate'] and self.energy >= self.ship_config['projectile']['recharge']: 
-            self.last_fire = now
-            self.fire_sound.play()
-            self.energy -= self.ship_config['projectile']['recharge']
-            # firing primary weapon
-            # TODO: placeholder data
-            self.firing = True
-            p_direction = self.heading
+        if now - self.last_fire > self.ship_config["fire_rate"]: 
+            if ("projectile" in self.ship_config
+                and self.energy >= self.ship_config["projectile"]["recharge"]
+            ):
+                self.last_fire = now
+                self.fire_sound.play()
+                self.energy -= self.ship_config["projectile"]["recharge"]
+                # firing primary weapon
+                # TODO: placeholder data
+                self.firing = True
 
-            self.p = Projectile(
-                self.ship_config['projectile']['type'],
-                self.x_pos,
-                self.y_pos,
-                self.ship_config['projectile']['health'],
-                self.ship_config['projectile']['shield'],
-                self.ship_config['projectile']['energy'],
-                self.ship_config['projectile']['recharge'],
-                self.ship_config['projectile']['fire_rate'],
-                self.ship_config['projectile']['explode'],
-                self.ship_config['projectile']['damage'],
-                p_direction,
-                self.ship_config['projectile']['velocity'],
-                p_direction,
-                self.ship_config['projectile']['max_velocity'],
-                self.ship_config['projectile']['expiry_time']
-            )
-            self.projectiles.add(self.p)
+                self.p = Projectile(
+                    self.ship_config["projectile"]["type"],
+                    self.x_pos,
+                    self.y_pos,
+                    self.ship_config["projectile"]["health"],
+                    self.ship_config["projectile"]["shield"],
+                    self.ship_config["projectile"]["energy"],
+                    self.ship_config["projectile"]["recharge"],
+                    self.ship_config["projectile"]["fire_rate"],
+                    self.ship_config["projectile"]["explode"],
+                    self.ship_config["projectile"]["damage"],
+                    self.heading,
+                    self.ship_config["projectile"]["velocity"],
+                    self.heading,
+                    self.ship_config["projectile"]["max_velocity"],
+                    self.ship_config["projectile"]["expiry_time"],
+                )
+                self.projectiles.add(self.p)
+
+            if ("beam" in self.ship_config
+                and self.energy >= self.ship_config["beam"]["recharge"]
+            ):
+                self.last_fire = now
+                self.fire_sound.play()
+                self.energy -= self.ship_config["beam"]["recharge"]
+                # firing primary weapon
+                # TODO: placeholder data
+                self.firing = True
+                
+                self.b = Beam(
+                    self.ship_config["beam"]["type"],
+                    self.x_pos,
+                    self.y_pos,
+                    self.heading,
+                    self.ship_config["beam"]["energy"],
+                    self.ship_config["beam"]["recharge"],
+                    self.ship_config["beam"]["fire_rate"],
+                    self.ship_config["beam"]["damage"]
+                )
+
 
     # TODO: placeholder
     def trigger_shield(self) -> None:
@@ -126,16 +162,17 @@ class Ship(GameObject):
         if not self.dead and self.controllable:
             match self.ship_type:
                 case "martian":  # Teleport
-                    if self.energy > self.ship_config['special_energy']:
-                        self.x_pos = random.randint(100, self.config.window_size_xy - 100)
-                        self.y_pos = random.randint(100, self.config.window_size_xy - 100)
+                    if self.energy > self.ship_config["special_energy"]:
+                        self.x_pos = random.randint(
+                            100, self.config.window_size_xy - 100
+                        )
+                        self.y_pos = random.randint(
+                            100, self.config.window_size_xy - 100
+                        )
                         self.teleporting = True
                         self.teleport_coords = (self.x_pos, self.y_pos)
                         self.special_sound.play()
-                        self.energy -= self.ship_config['special_energy']
-
-
-
+                        self.energy -= self.ship_config["special_energy"]
 
     def update(self) -> None:
         # Inertia and space friction(!)
@@ -147,83 +184,88 @@ class Ship(GameObject):
         sign = (self.vel_y > 0) - (self.vel_y < 0)
         self.vel_y = sign * (abs(self.vel_y) - inertia)
 
-        
         # Accellerating the ship
-        if self.accelleration > 0 and not self.dead and self.controllable:  # the ship is accelerating in the direciton of its heading
+        if (
+            self.accelleration > 0 and not self.dead and self.controllable
+        ):  # the ship is accelerating in the direciton of its heading
             # The accelleration happens in the direction of the self.heading
             x_accel = y_accel = 0
-            if self.vel_x < self.ship_config['max_velocity']:
+            if self.vel_x < self.ship_config["max_velocity"]:
                 x_accel = -math.sin(math.radians(self.heading)) * self.accelleration
             if self.vel_y < self.max_velocity:
                 y_accel = -math.cos(math.radians(self.heading)) * self.accelleration
 
             # We only allow accelleration which leads to a total speed of self.max_velocity or less,
-            # or anmything that slows us down 
+            # or anmything that slows us down
 
             vel_old = math.sqrt(self.vel_x**2 + self.vel_y**2)
-            vel_new = math.sqrt((self.vel_x + x_accel)**2 + (self.vel_y + y_accel)**2)
+            vel_new = math.sqrt(
+                (self.vel_x + x_accel) ** 2 + (self.vel_y + y_accel) ** 2
+            )
 
             # We only allow accelleration if we're under under max speed or player wants to net slow down
             if vel_new <= self.max_velocity or vel_new < vel_old:
                 self.vel_x += x_accel
                 self.vel_y += y_accel
 
-
         # If we're accelerating...
-        if self.accelleration > 0 and self.controllable: 
-            # Add engine trails 
+        if self.accelleration > 0 and self.controllable:
+            # Add engine trails
             if time.time() - self.last_engine_trail > 0.1:
                 et = EngineTrail(self.x_pos, self.y_pos, "regular")
                 self.engine_trails.add(et)
                 self.last_engine_trail = time.time()
-                self.image_orig = pg.image.load(self.ship_config['image_engines']).convert_alpha()
+                self.image_orig = pg.image.load(
+                    self.ship_config["image_engines"]
+                ).convert_alpha()
                 self.rect_orig = self.image_orig.get_rect()  # TODO: every update????
         else:
             # Image / animation of ship without engine fire
-            self.image_orig = pg.image.load(self.ship_config['image_ship']).convert_alpha()
+            self.image_orig = pg.image.load(
+                self.ship_config["image_ship"]
+            ).convert_alpha()
             self.rect_orig = self.image_orig.get_rect()  # TODO: every update????
-                   
 
         if not self.dead and self.controllable:
-            self.spin(self.turning, self.ship_config['turn_speed'], self.slow_turn)
-
+            self.spin(self.turning, self.ship_config["turn_speed"], self.slow_turn)
 
         # Rotation
-        self.image, self.rect = self._rotatesprite(self.image_orig, self.rect_orig, self.heading)
+        self.image, self.rect = self._rotatesprite(
+            self.image_orig, self.rect_orig, self.heading
+        )
         self.mask = pg.mask.from_surface(self.image)
 
         # Movement
         self.x_pos += self.vel_x / 3
         self.y_pos += self.vel_y / 3
-        
-        # We show up on the other side if we hit the edges
-        if self.vel_x > 0 and self.x_pos >= self.config.window_size_xy: 
-            self.x_pos -= self.config.window_size_xy
-            
-        if self.vel_x < 0 and self.x_pos <= 0: 
-            self.x_pos += self.config.window_size_xy
-       
-        if self.vel_y > 0 and self.y_pos >= self.config.window_size_xy: 
-            self.y_pos -= self.config.window_size_xy
-            
-        if self.vel_y < 0 and self.y_pos <= 0: 
-            self.y_pos += self.config.window_size_xy
-        
 
-        # Position 
+        # We show up on the other side if we hit the edges
+        if self.vel_x > 0 and self.x_pos >= self.config.window_size_xy:
+            self.x_pos -= self.config.window_size_xy
+
+        if self.vel_x < 0 and self.x_pos <= 0:
+            self.x_pos += self.config.window_size_xy
+
+        if self.vel_y > 0 and self.y_pos >= self.config.window_size_xy:
+            self.y_pos -= self.config.window_size_xy
+
+        if self.vel_y < 0 and self.y_pos <= 0:
+            self.y_pos += self.config.window_size_xy
+
+        # Position
         self.rect.center = (self.x_pos, self.y_pos)
 
         # Energy recharge
         now = pg.time.get_ticks()
         if (
-            now - self.last_energy_tick > 1000 and self.energy < self.ship_config['max_energy']
+            now - self.last_energy_tick > 1000
+            and self.energy < self.ship_config["max_energy"]
         ):  # hardcoded ignoring max values
             self.last_energy_tick = now
-            self.energy += self.ship_config['recharge']
-            if self.energy > self.ship_config['max_energy']:
-                self.energy = self.ship_config['max_energy']
+            self.energy += self.ship_config["recharge"]
+            if self.energy > self.ship_config["max_energy"]:
+                self.energy = self.ship_config["max_energy"]
 
         # Self firing
         if self.firing and not self.dead and self.controllable:
             self.fire()
-

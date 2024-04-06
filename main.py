@@ -15,11 +15,13 @@ from states.splash import Splash
 from gameGL import GameGL
 import settings
 
+
 @dataclass()
 class GameConfig:
     """
     Game configuration
     """
+
     FPS = settings.FPS
     SHOW_FPS = settings.SHOW_FPS
     window_size_xy = None  # only populated in GameGL
@@ -36,9 +38,9 @@ pg.mixer.init()
 pg.mixer.set_num_channels(16)
 
 states = {
-    "MENU": Menu(),           # chose your fight
-    "SPLASH": Splash(),       # splash loading screen, only for a second or two
-    "READY": Ready(),         # 
+    "MENU": Menu(),  # chose your fight
+    "SPLASH": Splash(),  # splash loading screen, only for a second or two
+    "READY": Ready(),
     "GAMEPLAY": GamePlay(),
     "GAME_OVER": GameOver(),  # next state is gameplay again
 }
