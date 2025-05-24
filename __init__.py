@@ -1,0 +1,3 @@
+"""
+Space Combat game package
+""" 
